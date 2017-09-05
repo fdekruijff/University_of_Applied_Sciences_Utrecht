@@ -1,5 +1,5 @@
 """
-    Title: Personal exercise 2_1
+    Title: Practice exercise 2_1
     Author: Floris de Kruijff
     Date created: 04-09-2017
 """
