@@ -1,7 +1,7 @@
 """
     Title: Practice exercise 1_3
     Author: Floris de Kruijff
-    Date created: 04 -Sep-17
+    Date created: 04-Sep-17
 """
 
 # 1:
