@@ -6,12 +6,7 @@
 
 
 def som(digit_list: list) -> int:
-    """
-    :param digit_list:
-    :type digit_list: list
-    :return: Returns the sum of the list
-    :rtype: Returns int or float
-    """
+    """ Returns the som of the passed list"""
     return_value = 0
     for digit in digit_list:
         return_value += digit

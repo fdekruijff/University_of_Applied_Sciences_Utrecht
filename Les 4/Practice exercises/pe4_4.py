@@ -6,12 +6,7 @@
 
 
 def new_password(oldpassword: str, newpassword: str) -> bool:
-    """
-    :param oldpassword: Define old password.
-    :param newpassword: Define new password.
-    :return: Returns True if new password is good.
-    :rtype: bool
-    """
+    """ Updates the old password with new password when requirements are met """
     if (oldpassword != new_password) and (len(newpassword) >= 6):
         # Check if new password has at least one digit.
         if any(char.isdigit() for char in newpassword):

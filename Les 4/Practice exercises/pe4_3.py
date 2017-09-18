@@ -6,13 +6,11 @@
 
 
 def tall_enough(length: int) -> str:
-    """
-    :param length: Specify length
-    :type length: int
-    :return: Returns if you are tall enough or not.
-    :rtype: str
-    """
+    """ Returns whether your length is tall enough  or not """
     if length >= 120:
         return "Je bent lang genoeg voor de attractie!"
     else:
         return "Sorry, je bent te klein!"
+
+
+print(tall_enough(150))

@@ -5,11 +5,9 @@
 """
 
 
-def som(getal1, getal2, getal3):
-    """
-    :param getal1:
-    :param getal2:
-    :param getal3:
-    :return: Returns the sum of three parameters
-    """
-    return getal1 + getal2, getal3
+def som(number1, number2, number3):
+    """ Returns the sum of three parameters """
+    return number1 + number2, number3
+
+
+print(som(1, 5, 3))

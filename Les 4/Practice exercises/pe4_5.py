@@ -6,6 +6,7 @@
 
 
 def square_sum(numbers: list) -> int:
+    """ Returns the square root sum of all positive integers """
     return_value = 0
     for number in numbers:
         if type(number) == int:
