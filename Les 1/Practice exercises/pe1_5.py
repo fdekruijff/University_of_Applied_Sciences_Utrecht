@@ -5,8 +5,10 @@
 """
 
 # 1:
-favorieten = list('Flume')
+favorieten = ['Flume']
 # 2:
 favorieten.append('Daft Punk')
 # 3:
-favorieten[1] = 'Logic'
+favorieten[0] = 'Logic'
+
+print(favorieten)
