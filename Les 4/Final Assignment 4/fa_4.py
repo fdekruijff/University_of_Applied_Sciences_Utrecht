@@ -12,7 +12,7 @@ def default_price(distance_km: int) -> float:
     elif distance_km <= 50:
         return distance_km * 0.8
     else:
-        return (distance_km * 0.6) + 15
+        return ((distance_km - 50) * 0.6) + 15
 
 
 def ride_price(age: int, weekend_ride: bool, distance_km: int) -> float:
@@ -29,7 +29,7 @@ def ride_price(age: int, weekend_ride: bool, distance_km: int) -> float:
     return float(format(price, '.2f'))
 
 
-# age: 50, not weekend, 20km | Price should be 16.00
+# age: 50, not weekend, 20km |0 Price should be 16.00
 print("Price for 20km is: {}".format(ride_price(50, False, 20)))
 
 # age: 50, weekend, 20km | Price should be 9,60

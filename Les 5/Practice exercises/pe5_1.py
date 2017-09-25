@@ -13,7 +13,7 @@ def convert(celsius: float) -> float:
 def table():
     """ Prints out table for -30 to 40 degrees Celsius """
 
-    for x in range(-30, 41):
+    for x in range(-30, 41, 5):
         print("{} degrees Celsius is {} Fahrenheit".format(x, convert(x)))
 
 
