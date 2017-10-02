@@ -1,7 +1,6 @@
 """
     Project: Mini project TICT-V1PROG-15
     School: Hogeschool Utrecht B HBO-ICT
-    Responsibility: Floris de Kruijff
 """
 
 
@@ -15,4 +14,4 @@ class CardMachine:
         self.latitude = latitude
         self.uuid = uuid.uuid4().hex
 
-        self.defect = False
+        self.defect = "Working"
