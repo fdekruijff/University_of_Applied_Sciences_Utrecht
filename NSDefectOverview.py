@@ -1,20 +1,21 @@
 """
     Project: Mini project TICT-V1PROG-15
     School: Hogeschool Utrecht B HBO-ICT
-    Responsibility: Floris de Kruijff
 """
 
-import tkinter as tk
-from tkinter import FLAT
 import requests
+
+import tkinter as tk
 import xml.etree.ElementTree as Et
 
+from tkinter import *
 from CardMachineOverviewPage import CardMachineOverviewPage
 from MechanicOverviewPage import MechanicOverviewPage
 from NotificationPage import NotificationPage
 from RegisterNewMechanicPage import RegisterNewMechanicPage
 from StartPage import StartPage
 from CardMachine import CardMachine
+from GenerateMechanic import GenerateMechanic
 
 
 class NSDefectOverview(tk.Tk):
@@ -35,6 +36,7 @@ class NSDefectOverview(tk.Tk):
         self.height = 380
 
         self.cardMachineList = []
+        self.mechanicList = []
 
         self.ns_api_username = "floris.dekruijff@student.hu.nl"
         self.ns_api_password = "FK7CDKplQPsyOpBuPtkURW8incvUdT3T2ZSVoSkrTRdF7r5ARvCOyQ"
@@ -43,7 +45,9 @@ class NSDefectOverview(tk.Tk):
         self.title("NS Defect Overview")
         self.resizable(0, 0)
 
+        # Initialise data
         self.populate_card_machine_list()
+        self.populate_mechanic_list()
 
         # Initialise TkInter container settings.
         container.pack(side="top", fill="both", expand=True)
@@ -60,9 +64,9 @@ class NSDefectOverview(tk.Tk):
             self.frames[page_name] = frame
             frame.grid(row=0, column=0, sticky="nsew")
 
-        self.frames[StartPage] = StartPage(container, self)
-        StartPage(container, self).grid(row=0, column=0, sticky="nsew")
-        self.show_frame(StartPage)
+        self.frames[CardMachineOverviewPage] = CardMachineOverviewPage(container, self)
+        CardMachineOverviewPage(container, self).grid(row=0, column=0, sticky="nsew")
+        self.show_frame(CardMachineOverviewPage)
 
     def show_frame(self, cont):
         frame = self.frames[cont]
@@ -98,3 +102,10 @@ class NSDefectOverview(tk.Tk):
             # We only want stations based in the Netherlands
             if is_in_netherlands:
                 self.cardMachineList.append(CardMachine(station_name, longitude, latitude))
+
+    def populate_mechanic_list(self):
+        """ Generates a number of people per province """
+        for province in GenerateMechanic.regions:
+            # Generate 20 Mechanics per province.
+            for amount in range(20):
+                GenerateMechanic.generate_mechanic(province)

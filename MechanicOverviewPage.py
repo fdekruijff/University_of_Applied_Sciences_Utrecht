@@ -1,7 +1,6 @@
 """
     Project: Mini project TICT-V1PROG-15
-    School: Hogeschool Utrecht B HBO-ICT
-    Responsibility: Floris de Kruijff
+    School: HogeSchool Utrecht B HBO-ICT
 """
 
 import tkinter as tk
