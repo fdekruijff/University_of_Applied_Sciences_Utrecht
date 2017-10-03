@@ -6,6 +6,7 @@
 import functools
 import tkinter as tk
 from tkinter import *
+import math
 
 
 class CardMachineOverviewPage(tk.Frame):
@@ -14,7 +15,8 @@ class CardMachineOverviewPage(tk.Frame):
 
         self.controller = controller
         self.searchString = []
-        self.informationLabels = ["Card Machine Station: ", "UUID: ", "Longitude: ", "Latitude: ", "In service: "]
+        self.informationLabels = ["Card Machine Station: ", "Longitude: ", "Latitude: ", "In service: ", "Name: ",
+                                  "Distance: ", "Action: "]
         self.informationHeaders = ["General Card Machine Information", "Closest Mechanic"]
 
         # Background Frame
@@ -76,7 +78,6 @@ class CardMachineOverviewPage(tk.Frame):
             self.stationListBox.delete(0, END)
             for station in self.controller.cardMachineList:
                 if self.searchEntry.get().lower().strip() in station.station_name.lower():
-
                     self.stationListBox.insert(END, station.station_name)
 
     def on_entry_click(self, x):
@@ -94,11 +95,15 @@ class CardMachineOverviewPage(tk.Frame):
             if machine.station_name.lower() == station_input.lower():
                 card_machine = machine
 
+        mechanic_info = self.controller.get_closest_mechanic(card_machine)
+
         card_machine_info.append(card_machine.station_name)
-        card_machine_info.append(card_machine.uuid)
         card_machine_info.append(card_machine.longitude)
         card_machine_info.append(card_machine.latitude)
         card_machine_info.append(card_machine.defect)
+        card_machine_info.append(mechanic_info[1].name)
+        card_machine_info.append("{} km".format(math.floor(mechanic_info[0])))
+        card_machine_info.append("")
 
         self.informationContainer.place(relx=0.520, rely=0.15, relwidth=0.45, relheight=0.80)
         self.informationContainer.configure(background="#ebedeb")
@@ -114,6 +119,9 @@ class CardMachineOverviewPage(tk.Frame):
 
         rely = 0.15
         for label in range(len(self.informationLabels)):
+            if label == 4:
+                rely += 0.22
+
             self.tempLabel = Label(self.informationContainer)
             self.tempLabel.place(relx=0.05, rely=rely, relwidth=0.425)
             self.tempLabel.configure(background="#ebedeb")
@@ -126,6 +134,3 @@ class CardMachineOverviewPage(tk.Frame):
             self.tempLabel.configure(background="#ebedeb")
             self.tempLabel.configure(text=card_machine_info[label])
             rely += 0.085
-
-
-## http://maps.google.com/maps/api/staticmap?center=52.131907,5.017102&zoom=12&size=500x500&format=jpg&maptype=terrain&sensor=false
