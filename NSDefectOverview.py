@@ -8,6 +8,7 @@ import requests
 import tkinter as tk
 import xml.etree.ElementTree as Et
 
+from math import *
 from tkinter import *
 from CardMachineOverviewPage import CardMachineOverviewPage
 from MechanicOverviewPage import MechanicOverviewPage
@@ -16,6 +17,7 @@ from RegisterNewMechanicPage import RegisterNewMechanicPage
 from StartPage import StartPage
 from CardMachine import CardMachine
 from GenerateMechanic import GenerateMechanic
+import operator
 
 
 class NSDefectOverview(tk.Tk):
@@ -64,9 +66,9 @@ class NSDefectOverview(tk.Tk):
             self.frames[page_name] = frame
             frame.grid(row=0, column=0, sticky="nsew")
 
-        self.frames[CardMachineOverviewPage] = CardMachineOverviewPage(container, self)
-        CardMachineOverviewPage(container, self).grid(row=0, column=0, sticky="nsew")
-        self.show_frame(CardMachineOverviewPage)
+        self.frames[StartPage] = StartPage(container, self)
+        StartPage(container, self).grid(row=0, column=0, sticky="nsew")
+        self.show_frame(StartPage)
 
     def show_frame(self, cont):
         frame = self.frames[cont]
@@ -106,6 +108,34 @@ class NSDefectOverview(tk.Tk):
     def populate_mechanic_list(self):
         """ Generates a number of people per province """
         for province in GenerateMechanic.regions:
-            # Generate 20 Mechanics per province.
-            for amount in range(20):
-                GenerateMechanic.generate_mechanic(province)
+            for amount in range(15):
+                self.mechanicList.append(GenerateMechanic.generate_mechanic(province))
+        self.mechanicList.sort(key=operator.attrgetter('name'))
+
+    def haversine_formula(self, latitude1, longitude1, latitude2, longitude2):
+        """
+        Calculate the great circle distance between two points
+        on the earth (specified in decimal degrees)
+        """
+        # convert decimal degrees to radians
+        longitude1, latitude1, longitude2, latitude2 = map(radians, [longitude1, latitude1, longitude2, latitude2])
+        # haversine formula
+        delta_longitude = longitude2 - longitude1
+        delta_latitude = latitude2 - latitude1
+        a = sin(delta_latitude / 2) ** 2 + cos(latitude1) * cos(latitude2) * sin(delta_longitude / 2) ** 2
+        c = 2 * asin(sqrt(a))
+        return 6367 * c
+
+    def get_closest_mechanic(self, card_machine: CardMachine):
+        lowest = 0
+        return_mechanic = None
+        latitude1 = card_machine.latitude
+        longitude1 = card_machine.longitude
+        for mechanic in self.mechanicList:
+            distance = self.haversine_formula(float(latitude1), float(longitude1), float(mechanic.latitude), float(mechanic.longitude))
+            if lowest == 0:
+                lowest = distance
+            elif distance < lowest:
+                lowest = distance
+                return_mechanic = mechanic
+        return lowest, return_mechanic

@@ -5,10 +5,11 @@
 
 
 class Mechanic:
-    def __init__(self, name, gender, age, address, region, schedule):
+    def __init__(self, name, gender, age, latitude, longitude, region, schedule):
         self.name = name
         self.gender = gender
         self.age = age
-        self.address = address
+        self.latitude = latitude
+        self.longitude = longitude
         self.region = region
         self.schedule = schedule

@@ -10,7 +10,6 @@ from Mechanic import Mechanic
 
 
 class GenerateMechanic:
-
     regions = {
         "drenthe": {"lat": 52.9476012, "long": 6.623058600000036},
         "flevoland": {"lat": 52.5279781, "long": 5.595350800000006},
@@ -27,6 +26,23 @@ class GenerateMechanic:
     }
 
     @staticmethod
+    def get_address_from_coordiantes(lat, long):
+        """ Reverse geocoding """
+        base = "https://maps.googleapis.com/maps/api/geocode/json?"
+        params = "latlng={lat},{lon}&sensor={sen}&key={key}".format(
+            lat=lat,
+            lon=long,
+            sen='true',
+            key='AIzaSyDQJhy23ZFqmyD7Xq8a3GlvAopxD-6g_HM'
+        )
+
+        response = requests.get("{base}{params}".format(base=base, params=params))
+        try:
+            return response.json()['results'][0]['formatted_address']
+        except IndexError:
+            return -1
+
+    @staticmethod
     def check_coordinates_in_province(lat, long, province):
         """ Reverse geocoding """
         base = "https://maps.googleapis.com/maps/api/geocode/json?"
@@ -41,7 +57,6 @@ class GenerateMechanic:
         try:
             response = response.json()['results'][0]['address_components'][4]['long_name']
         except IndexError:
-            # print("{} JSON index out of range: {}".format(GenerateMechanic.__name__, response.json()))
             return False
         if response.lower() == province.lower():
             return True
@@ -54,9 +69,7 @@ class GenerateMechanic:
                                           input_latitude + random.uniform(-1, 1))
             new_longitude = random.uniform(input_longitude - random.uniform(-1, 1),
                                            input_longitude + random.uniform(-1, 1))
-            # return
 
-            # if GenerateMechanic.check_coordinates_in_province(new_latitude, new_longitude, province):
             return new_latitude, new_longitude
 
     @staticmethod
@@ -70,10 +83,9 @@ class GenerateMechanic:
             gender = 'female'
 
         age = random.randint(21, 65)
-        address = GenerateMechanic.generate_coordinates(
+        coordinates = GenerateMechanic.generate_coordinates(
             GenerateMechanic.regions[province.lower()]['lat'],
-            GenerateMechanic.regions[province.lower()]['long'],
-            province
+            GenerateMechanic.regions[province.lower()]['long']
         )
 
-        return Mechanic(name, gender, age, address, province, None)
+        return Mechanic(name, gender, age, coordinates[0], coordinates[1], province, None)
