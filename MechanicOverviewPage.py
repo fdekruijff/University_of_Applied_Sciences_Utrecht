@@ -97,7 +97,7 @@ class MechanicOverviewPage(tk.Frame):
         mechanic_info.append(mechanic.name)
         mechanic_info.append(mechanic.region.title())
         mechanic_info.append(mechanic.age)
-        mechanic_info.append("Available")
+        mechanic_info.append(mechanic.availability)
 
         self.informationContainer.place(relx=0.520, rely=0.15, relwidth=0.45, relheight=0.80)
         self.informationContainer.configure(background="#ebedeb")
