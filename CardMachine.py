@@ -14,4 +14,4 @@ class CardMachine:
         self.latitude = latitude
         self.uuid = uuid.uuid4().hex
 
-        self.defect = "Working"
+        self.defect = "Operational"

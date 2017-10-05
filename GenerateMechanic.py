@@ -88,4 +88,4 @@ class GenerateMechanic:
             GenerateMechanic.regions[province.lower()]['long']
         )
 
-        return Mechanic(name, gender, age, coordinates[0], coordinates[1], province, None)
+        return Mechanic(name, gender, age, coordinates[0], coordinates[1], province, None, "Available")
