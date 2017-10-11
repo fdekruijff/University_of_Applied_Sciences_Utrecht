@@ -97,7 +97,7 @@ class CardMachineOverviewPage(tk.Frame):
             "Traveling to {} by car will be {} kilometer over {} minutes.".format(
                 card_machine.station_name, travel_advice[0], travel_advice[1]
             ),
-            [{"text": "  Done  ", "command": "popup.destroy"}],
+            [{"text": "  Done  ", "command": "self.popup.destroy"}],
             450, 100, "#fcc63f"
         )
 
