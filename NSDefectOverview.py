@@ -13,6 +13,7 @@ from tkinter import *
 
 import googlemaps
 import requests
+import twilio.rest
 
 from CardMachine import CardMachine
 from CardMachineOverviewPage import CardMachineOverviewPage
@@ -52,6 +53,7 @@ class NSDefectOverview(tk.Tk):
         self.ns_api_username = "floris.dekruijff@student.hu.nl"
         self.ns_api_password = "FK7CDKplQPsyOpBuPtkURW8incvUdT3T2ZSVoSkrTRdF7r5ARvCOyQ"
         self.google_maps_api = googlemaps.Client(key='AIzaSyB3sE6Ekts-GoPlZ8vJ8P8i0UL1rVFnnPI')
+        self.twilio_api = twilio.rest.Client("ACdf5a5cafa61b2fa3c98615176e80a6ac", "514dcdd9428ece0db966ec011a93a084")
 
         self.geometry("{}x{}+400+150".format(self.width, self.height))
         self.title("NS Defect Overview")
@@ -313,3 +315,10 @@ class NSDefectOverview(tk.Tk):
             ]
 
         self.new_popup(title, message, buttons, 450, 150, "#fcc63f")
+
+    def text_mechanic(self, mechanic_name : Mechanic, card_machine: CardMachine):
+        message = twilio.rest.messages.create(
+               to="+31642357996",
+               from_="+3197014200218",
+               body= mechanic_name + ",you are expected to the fix the machine at: {}"+ card_machine.station_name)
+
