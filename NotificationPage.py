@@ -51,14 +51,17 @@ class NotificationPage(tk.Frame):
         self.notificationListBox.configure(relief=self.controller.buttonRelief)
         self.notificationListBox.configure(highlightbackground="#fcc63f")
         self.notificationListBox.configure(highlightcolor="#fcc63f")
+        self.notificationListBox.configure(selectbackground="#ebedeb")
+        self.notificationListBox.configure(selectforeground="#212b5c")
         self.notificationListBox.configure(width=500)
         self.notificationListBox.configure(height=100)
-        # self.notificationListBox.bind("<Double-Button-1>", self.get_machine_specifics)
 
         self.scrollbar = Scrollbar(self.notificationListBox)
         self.notificationListBox.config(yscrollcommand=self.scrollbar.set)
         self.scrollbar.pack(side=RIGHT, fill=Y)
         self.scrollbar.config(command=self.notificationListBox.yview)
+
+        self.update_notification_list()
 
     def on_entry_click(self, x):
         if self.searchEntry.get() == 'Search Notification':
@@ -66,3 +69,10 @@ class NotificationPage(tk.Frame):
             self.searchEntry.insert(0, '')
             self.searchEntry.config(fg='black')
 
+    def update_notification_list(self):
+        self.notificationListBox.delete(0,  END)
+        for notification in self.controller.notificationList:
+            entry = "{time}" \
+                    "           |           " \
+                    "{message}".format(time=notification.time, message= notification.message)
+            self.notificationListBox.insert(END, entry)
