@@ -135,17 +135,16 @@ class NSDefectOverview(tk.Tk):
 
                         for x in self.mechanicList:
                             mechanic = Et.SubElement(mechanics, "mechanic")
-                            Et.SubElement(mechanic,"name").text = str(x.name)
-                            Et.SubElement(mechanic,"gender").text = str(x.gender)
-                            Et.SubElement(mechanic,"age").text = str(x.age)
-                            Et.SubElement(mechanic,"latitude").text = str(x.latitude)
-                            Et.SubElement(mechanic,"longitude").text = str(x.longitude)
-                            Et.SubElement(mechanic,"region").text = str(x.region)
-                            Et.SubElement(mechanic,"schedule").text = str(x.schedule)
-                            Et.SubElement(mechanic,"availability").text = str(x.availability)
-                            Et.SubElement(mechanic,"shift").text = str(x.shift)
-                            Et.SubElement(mechanic,"phone").text = str(x.phone_number)
-
+                            Et.SubElement(mechanic, "name").text = str(x.name)
+                            Et.SubElement(mechanic, "gender").text = str(x.gender)
+                            Et.SubElement(mechanic, "age").text = str(x.age)
+                            Et.SubElement(mechanic, "latitude").text = str(x.latitude)
+                            Et.SubElement(mechanic, "longitude").text = str(x.longitude)
+                            Et.SubElement(mechanic, "region").text = str(x.region)
+                            Et.SubElement(mechanic, "schedule").text = str(x.schedule)
+                            Et.SubElement(mechanic, "availability").text = str(x.availability)
+                            Et.SubElement(mechanic, "shift").text = str(x.shift)
+                            Et.SubElement(mechanic, "phone").text = str(x.phone_number)
 
                         tree = Et.ElementTree(mechanics)
                         tree.write('mechanic.xml')
@@ -153,41 +152,42 @@ class NSDefectOverview(tk.Tk):
                 tree = Et.parse('mechanic.xml')
                 mechanics = tree.getroot()
                 for x in mechanics:
-                    mname = ""
-                    mgender = ""
-                    mage = ""
-                    mlatitude =""
-                    mlongitude =""
-                    mregion =""
-                    mschedule= ""
-                    mavailability =""
-                    mshift = ""
-                    mphone= ""
+                    name = ""
+                    gender = ""
+                    age = ""
+                    latitude = ""
+                    longitude = ""
+                    region = ""
+                    schedule = ""
+                    availability = ""
+                    shift = ""
+                    phone = ""
 
                     for meta in x:
                         if meta.tag == "name":
-                            mname = meta.text
+                            name = meta.text
                         if meta.tag == "gender":
-                            mgender = meta.text
+                            gender = meta.text
                         if meta.tag == "age":
-                            mage = meta.text
-                        if meta.tag == "Lat":
-                            mlatitude = meta.text
-                        if meta.tag == "Lon":
-                            mlongitude = meta.text
+                            age = int(meta.text)
+                        if meta.tag == "latitude":
+                            latitude = float(meta.text)
+                        if meta.tag == "longitude":
+                            longitude = float(meta.text)
                         if meta.tag == "region":
-                            mregion = meta.text
+                            region = meta.text
                         if meta.tag == "schedule":
-                            mschedule = meta.text
+                            schedule = meta.text
                         if meta.tag == "availability":
-                            mavailability = meta.text
+                            availability = meta.text
                         if meta.tag == "shift":
-                            mshift = meta.text
+                            shift = meta.text
                         if meta.tag == "phone":
-                            mphone = meta.text
+                            phone = meta.text
 
-
-                    self.mechanicList.append(Mechanic(mname, mgender, mage ,mlatitude, mlongitude,mregion, mschedule, mavailability, mshift, mphone ))
+                    self.mechanicList.append(
+                        Mechanic(name, gender, age, latitude, longitude, region, schedule, availability, shift,
+                                 phone))
 
                 self.mechanicList.sort(key=operator.attrgetter('name'))
         else:
@@ -275,6 +275,7 @@ class NSDefectOverview(tk.Tk):
         self.popup.mainloop()
 
     def new_notification(self):
+        self.send_sms(self.notification_information[0], self.notification_information[1].phone_number)
         self.notification_information[1].availability = "Occupied"
         self.notificationList.append(Notification(datetime.datetime.now(), self.notification_information[0]))
         self.popup.destroy()
@@ -355,9 +356,9 @@ class NSDefectOverview(tk.Tk):
 
         self.new_popup(title, message, buttons, 450, 150, "#fcc63f")
 
-    def text_mechanic(self, mechanic_name : Mechanic, card_machine: CardMachine):
-        message = twilio.rest.messages.create(
-               to="+31642357996",
-               from_="+3197014200218",
-               body= mechanic_name + ",you are expected to the fix the machine at: {}"+ card_machine.station_name)
-
+    def send_sms(self, message, number):
+        self.twilio_api.messages.create(
+            to=number,
+            from_="+3197014200218",
+            body=message
+        )
