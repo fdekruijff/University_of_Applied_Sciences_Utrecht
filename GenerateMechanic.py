@@ -81,11 +81,17 @@ class GenerateMechanic:
             # Female
             name = names.get_full_name(gender='female')
             gender = 'female'
+#shifts
+        if random.uniform(0, 1) <= 0.5:
+            shift = 'day'
+        else:
+            shift = 'night'
 
         age = random.randint(21, 65)
+
         coordinates = GenerateMechanic.generate_coordinates(
             GenerateMechanic.regions[province.lower()]['lat'],
             GenerateMechanic.regions[province.lower()]['long']
         )
 
-        return Mechanic(name, gender, age, coordinates[0], coordinates[1], province, None, "Available")
+        return Mechanic(name, gender, age, coordinates[0], coordinates[1], province, None, "Available",shift)

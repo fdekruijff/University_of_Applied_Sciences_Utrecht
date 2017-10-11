@@ -7,6 +7,8 @@ import datetime
 import operator
 import tkinter as tk
 import xml.etree.ElementTree as Et
+import datetime
+import os
 from math import *
 from tkinter import *
 
@@ -119,10 +121,15 @@ class NSDefectOverview(tk.Tk):
 
     def populate_mechanic_list(self):
         """ Randomly generates meta data for a new mechanic. """
-        for province in GenerateMechanic.regions:
-            for amount in range(5):
-                self.mechanicList.append(GenerateMechanic.generate_mechanic(province))
-        self.mechanicList.sort(key=operator.attrgetter('name'))
+        if os.path.isfile("mechanic.xml"):
+            if os.stat("mechanic.xml").st_size == 0:
+                for province in GenerateMechanic.regions:
+                    for amount in range(5):
+                        self.mechanicList.append(GenerateMechanic.generate_mechanic(province))
+                self.mechanicList.sort(key=operator.attrgetter('name'))
+        else:
+            fp = open('mechanic.xml', 'w+')
+            self.populate_mechanic_list()
 
     def haversine_formula(self, latitude1, longitude1, latitude2, longitude2):
         """
