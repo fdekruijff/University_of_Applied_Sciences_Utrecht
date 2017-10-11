@@ -166,7 +166,7 @@ class CardMachineOverviewPage(tk.Frame):
             if machine.station_name.lower() == station_input.lower():
                 card_machine = machine
 
-        mechanic_info = self.controller.get_closest_mechanic(card_machine)
+        mechanic_info = self.controller.get_closest_mechanic(card_machine, None)
 
         card_machine_info.append(card_machine.station_name)
         card_machine_info.append(card_machine.longitude)

@@ -5,10 +5,9 @@
 
 import datetime
 import operator
+import os
 import tkinter as tk
 import xml.etree.ElementTree as Et
-import datetime
-import os
 from math import *
 from tkinter import *
 
@@ -88,6 +87,7 @@ class NSDefectOverview(tk.Tk):
         frame.tkraise()
 
     def populate_card_machine_list(self):
+        response = None
         """ Populates the cardMachineList with generated Machines based on station """
         try:
             response = requests.get(url="http://webservices.ns.nl/ns-api-stations-v2",
@@ -128,10 +128,11 @@ class NSDefectOverview(tk.Tk):
                         self.mechanicList.append(GenerateMechanic.generate_mechanic(province))
                 self.mechanicList.sort(key=operator.attrgetter('name'))
         else:
-            fp = open('mechanic.xml', 'w+')
+            open('mechanic.xml', 'w+')
             self.populate_mechanic_list()
 
-    def haversine_formula(self, latitude1, longitude1, latitude2, longitude2):
+    @staticmethod
+    def haversine_formula(latitude1, longitude1, latitude2, longitude2):
         """
         Calculate the great circle distance between two points
         on the earth (specified in decimal degrees)
@@ -146,14 +147,14 @@ class NSDefectOverview(tk.Tk):
         d = 6367 * c
         return d
 
-    def get_closest_mechanic(self, card_machine: CardMachine):
+    def get_closest_mechanic(self, card_machine: CardMachine, exclude_mechanic: Mechanic):
         """
             This function loops through all the current mechanics and finds the one closest to the passed card machine
         """
         lowest = 0
         return_mechanic = None
         for mechanic in self.mechanicList:
-            distance = self.haversine_formula(
+            distance = NSDefectOverview.haversine_formula(
                 float(card_machine.latitude), float(card_machine.longitude),
                 float(mechanic.latitude), float(mechanic.longitude)
             )
@@ -161,7 +162,8 @@ class NSDefectOverview(tk.Tk):
                 lowest = distance
             elif distance < lowest:
                 lowest = distance
-                return_mechanic = mechanic
+                if exclude_mechanic != mechanic:
+                    return_mechanic = mechanic
         return lowest, return_mechanic
 
     def get_distance_travel_time(self, latitude1, longitude1, latitude2, longitude2):
@@ -178,12 +180,6 @@ class NSDefectOverview(tk.Tk):
         """
             This function creates a pop-up based on the passed parameters. It also generates buttons based on the passed
             list.
-
-            The button list should be in the following format:
-            [
-             {"text": "Lorem Ipsum", "command": "print *cannot contain ()*"},
-             {"text": "Lorem Ipsum", "command": "print *cannot contain ()*"}
-            ]
         """
         self.popup = tk.Tk()
         self.popup.wm_title(title)
@@ -228,40 +224,70 @@ class NSDefectOverview(tk.Tk):
         message = ""
         title = ""
         buttons = []
+        next_mechanic = self.get_closest_mechanic(card_machine, mechanic)
+
         travel_time = self.get_distance_travel_time(
-            card_machine.latitude, card_machine.longitude, mechanic.latitude, mechanic.longitude)[1]
+            card_machine.latitude,
+            card_machine.longitude,
+            mechanic.latitude,
+            mechanic.longitude)[1]
+
+        self.notification_information = [
+            "{mechanic_name} was dispatched to {station_name}, travel time is {travel_time} minutes.".format(
+                mechanic_name=mechanic.name,
+                station_name=card_machine.station_name,
+                travel_time=travel_time),
+            mechanic, card_machine
+        ]
+
         if card_machine.defect == "Defect" and mechanic.availability == "Available":
             # Go directly to the create new event form.
+            title = "Success"
+
+            message = "{mechanic_name} has successfully been deployed to {station_name}".format(
+                mechanic_name=mechanic.name,
+                station_name=card_machine.station_name
+            )
+
+            buttons = [{"text": "Ok", "command": "self.new_notification"}]
             self.new_notification()
 
-        elif card_machine.defect == "Defect" and mechanic.availability == "Occupied":
-            # TODO: Maybe find the next closest available mechanic.
-            title = "Unfortunately"
-            message = "Unfortunately {} is {}, but {} is {}".format(
-                card_machine.station_name, card_machine.defect, mechanic.name, mechanic.availability.lower()
-            )
-            buttons = [{"text": "Ok", "command": "self.popup.destroy"}]
-
-        elif card_machine.defect == "Operational" and mechanic.availability == "Occupied":
-            # TODO: Maybe find the next closest available mechanic.
+        elif card_machine.defect == "Defect" or card_machine.defect == "Operational" and mechanic.availability == "Occupied":
             title = "Are you sure?"
-            message = "{} is {}, but {} is {}".format(
-                card_machine.station_name, card_machine.defect, mechanic.name, mechanic.availability.lower()
+
+            message = "{station_name} is {station_status}, and the closest mechanic is occupied. \n " \
+                      "The next is {mechanic_name} and is {distance} away, would you like to dispatch?".format(
+                station_name=card_machine.station_name,
+                station_status=card_machine.defect,
+                mechanic_name=next_mechanic[1].name,
+                distance=math.floor(next_mechanic[0])
             )
-            buttons = [{"text": "Yes, I'm sure", "command": "self.new_notification"},
-                       {"text": "Cancel", "command": "self.popup.destroy"}]
+
+            buttons = [
+                {"text": "Yes, I'm sure", "command": "self.new_notification"},
+                {"text": "Cancel", "command": "self.popup.destroy"}
+            ]
+
+            self.notification_information[0] = \
+                "{mechanic_name} was dispatched to {station_name}, travel time is {travel_time} minutes.".format(
+                    mechanic_name=next_mechanic[1].name,
+                    station_name=card_machine.station_name,
+                    travel_time=travel_time
+                )
 
         elif card_machine.defect == "Operational" and mechanic.availability == "Available":
             title = "Are you sure?"
-            message = "{} is {} and {} is {}".format(
-                card_machine.station_name, card_machine.defect, mechanic.name, mechanic.availability.lower()
-            )
-            buttons = [{"text": "Yes, I'm sure", "command": "self.new_notification"},
-                       {"text": "Cancel", "command": "self.popup.destroy"}]
 
-        self.notification_information = [
-            "{} was dispatched to {}, travel time is {} minutes.".format(
-                mechanic.name, card_machine.station_name, travel_time
-            ), mechanic, card_machine
-        ]
+            message = "{station_name} is {station_status} and {mechanic_name} is {mechanic_status}".format(
+                station_name=card_machine.station_name,
+                station_status=card_machine.defect,
+                mechanic_name=mechanic.name,
+                mechanic_status=mechanic.availability.lower()
+            )
+
+            buttons = [
+                {"text": "Yes, I'm sure", "command": "self.new_notification"},
+                {"text": "Cancel", "command": "self.popup.destroy"}
+            ]
+
         self.new_popup(title, message, buttons, 450, 150, "#fcc63f")
