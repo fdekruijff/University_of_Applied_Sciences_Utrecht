@@ -6,12 +6,13 @@
 import operator
 import tkinter as tk
 import xml.etree.ElementTree as Et
-import googlemaps
-import requests
 import datetime
-
 from math import *
 from tkinter import *
+
+import googlemaps
+import requests
+
 from CardMachine import CardMachine
 from CardMachineOverviewPage import CardMachineOverviewPage
 from GenerateMechanic import GenerateMechanic
@@ -19,8 +20,8 @@ from Mechanic import Mechanic
 from MechanicOverviewPage import MechanicOverviewPage
 from NotificationPage import NotificationPage
 from RegisterNewMechanicPage import RegisterNewMechanicPage
-from NotificationHandler import NotificationHandler
 from StartPage import StartPage
+from Notification import Notification
 
 
 class NSDefectOverview(tk.Tk):
@@ -42,7 +43,45 @@ class NSDefectOverview(tk.Tk):
 
         self.cardMachineList = []
         self.mechanicList = []
-        self.notificationList = []
+        self.notificationList = [
+            Notification(datetime.datetime.now(), "Just 1 random entry"),
+            Notification(datetime.datetime.now(), "Just 2 random entry"),
+            Notification(datetime.datetime.now(), "Just 3 random entry"),
+            Notification(datetime.datetime.now(), "Just 4 random entry"),
+            Notification(datetime.datetime.now(), "Just 5 random entry"),
+            Notification(datetime.datetime.now(), "Just 6 random entry"),
+            Notification(datetime.datetime.now(), "Just 7 random entry"),
+            Notification(datetime.datetime.now(), "Just 8 random entry"),
+            Notification(datetime.datetime.now(), "Just 9 random entry"),
+            Notification(datetime.datetime.now(), "Just 1 random entry"),
+            Notification(datetime.datetime.now(), "Just 2 random entry"),
+            Notification(datetime.datetime.now(), "Just 3 random entry"),
+            Notification(datetime.datetime.now(), "Just 4 random entry"),
+            Notification(datetime.datetime.now(), "Just 5 random entry"),
+            Notification(datetime.datetime.now(), "Just 6 random entry"),
+            Notification(datetime.datetime.now(), "Just 7 random entry"),
+            Notification(datetime.datetime.now(), "Just 8 random entry"),
+            Notification(datetime.datetime.now(), "Just 9 random entry"),
+            Notification(datetime.datetime.now(), "Just 1 random entry"),
+            Notification(datetime.datetime.now(), "Just 2 random entry"),
+            Notification(datetime.datetime.now(), "Just 3 random entry"),
+            Notification(datetime.datetime.now(), "Just 4 random entry"),
+            Notification(datetime.datetime.now(), "Just 5 random entry"),
+            Notification(datetime.datetime.now(), "Just 6 random entry"),
+            Notification(datetime.datetime.now(), "Just 7 random entry"),
+            Notification(datetime.datetime.now(), "Just 8 random entry"),
+            Notification(datetime.datetime.now(), "Just 9 random entry"),
+            Notification(datetime.datetime.now(), "Just 1 random entry"),
+            Notification(datetime.datetime.now(), "Just 2 random entry"),
+            Notification(datetime.datetime.now(), "Just 3 random entry"),
+            Notification(datetime.datetime.now(), "Just 4 random entry"),
+            Notification(datetime.datetime.now(), "Just 5 random entry"),
+            Notification(datetime.datetime.now(), "Just 6 random entry"),
+            Notification(datetime.datetime.now(), "Just 7 random entry"),
+            Notification(datetime.datetime.now(), "Just 8 random entry"),
+            Notification(datetime.datetime.now(), "Just 9 random entry"),
+            Notification(datetime.datetime.now(), "Just 10 random entry")
+        ]
 
         self.ns_api_username = "floris.dekruijff@student.hu.nl"
         self.ns_api_password = "FK7CDKplQPsyOpBuPtkURW8incvUdT3T2ZSVoSkrTRdF7r5ARvCOyQ"
@@ -229,15 +268,15 @@ class NSDefectOverview(tk.Tk):
             message = "{} is {}, but {} is {}".format(
                 card_machine.station_name, card_machine.defect, mechanic.name, mechanic.availability.lower()
             )
-            buttons = [{"text": "Yes, I'm sure", "command": "0"}, {"text": "Cancel", "command": "popup.destroy"}]
+            buttons = [{"text": "Yes, I'm sure", "command": "0", "mechanic": mechanic, "card_machine": card_machine},
+                       {"text": "Cancel", "command": "popup.destroy"}]
 
         elif card_machine.defect == "Operational" and mechanic.availability == "Available":
             title = "Are you sure?"
             message = "{} is {} and {} is {}".format(
                 card_machine.station_name, card_machine.defect, mechanic.name, mechanic.availability.lower()
             )
-            buttons = [{"text": "Yes, I'm sure", "command": "0"}, {"text": "Cancel", "command": "popup.destroy"}]
+            buttons = [{"text": "Yes, I'm sure", "command": "0", "mechanic": mechanic, "card_machine": card_machine},
+                       {"text": "Cancel", "command": "popup.destroy"}]
 
-        NotificationHandler.new_notification(self, datetime.datetime.now(), "Test mesage", card_machine, mechanic)
         self.new_popup(title, message, buttons, 450, 150, "#fcc63f")
-
