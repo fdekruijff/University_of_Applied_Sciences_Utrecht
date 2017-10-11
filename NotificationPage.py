@@ -50,6 +50,7 @@ class NotificationPage(tk.Frame):
         self.notificationListBox.configure(foreground=self.controller.buttonBackgroundColor)
         self.notificationListBox.configure(relief=self.controller.buttonRelief)
         self.notificationListBox.configure(highlightbackground="#fcc63f")
+        self.notificationListBox.configure(activestyle='none')
         self.notificationListBox.configure(highlightcolor="#fcc63f")
         self.notificationListBox.configure(selectbackground="#ebedeb")
         self.notificationListBox.configure(selectforeground="#212b5c")
@@ -73,6 +74,6 @@ class NotificationPage(tk.Frame):
         self.notificationListBox.delete(0,  END)
         for notification in self.controller.notificationList:
             entry = "{time}" \
-                    "           |           " \
+                    "                       " \
                     "{message}".format(time=notification.time, message= notification.message)
             self.notificationListBox.insert(END, entry)
