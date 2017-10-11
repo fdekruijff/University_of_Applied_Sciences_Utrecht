@@ -14,7 +14,7 @@ class MechanicOverviewPage(tk.Frame):
 
         self.controller = controller
         self.searchString = []
-        self.informationLabels = ["Name: ", "Region: ", "Age: ", "Availability: "]
+        self.informationLabels = ["Name: ", "Region: ", "Age: ", "Availability: ","Shift: "]
         self.informationHeaders = ["General Information", "Actions"]
 
         # Background Frame
@@ -98,6 +98,7 @@ class MechanicOverviewPage(tk.Frame):
         mechanic_info.append(mechanic.region.title())
         mechanic_info.append(mechanic.age)
         mechanic_info.append(mechanic.availability)
+        mechanic_info.append(mechanic.shift)
 
         self.informationContainer.place(relx=0.520, rely=0.15, relwidth=0.45, relheight=0.80)
         self.informationContainer.configure(background="#ebedeb")
