@@ -14,6 +14,7 @@ from tkinter import *
 
 import googlemaps
 import requests
+import twilio.rest
 
 from CardMachine import CardMachine
 from CardMachineOverviewPage import CardMachineOverviewPage
@@ -53,6 +54,7 @@ class NSDefectOverview(tk.Tk):
         self.ns_api_username = "floris.dekruijff@student.hu.nl"
         self.ns_api_password = "FK7CDKplQPsyOpBuPtkURW8incvUdT3T2ZSVoSkrTRdF7r5ARvCOyQ"
         self.google_maps_api = googlemaps.Client(key='AIzaSyB3sE6Ekts-GoPlZ8vJ8P8i0UL1rVFnnPI')
+        self.twilio_api = twilio.rest.Client("ACdf5a5cafa61b2fa3c98615176e80a6ac", "514dcdd9428ece0db966ec011a93a084")
 
         self.geometry("{}x{}+400+150".format(self.width, self.height))
         self.title("NS Defect Overview")
@@ -228,40 +230,77 @@ class NSDefectOverview(tk.Tk):
         message = ""
         title = ""
         buttons = []
+        next_mechanic = self.get_closest_mechanic(card_machine, mechanic)
+
         travel_time = self.get_distance_travel_time(
-            card_machine.latitude, card_machine.longitude, mechanic.latitude, mechanic.longitude)[1]
+            card_machine.latitude,
+            card_machine.longitude,
+            mechanic.latitude,
+            mechanic.longitude)[1]
+
+        self.notification_information = [
+            "{mechanic_name} was dispatched to {station_name}, travel time is {travel_time} minutes.".format(
+                mechanic_name=mechanic.name,
+                station_name=card_machine.station_name,
+                travel_time=travel_time),
+            mechanic, card_machine
+        ]
+
         if card_machine.defect == "Defect" and mechanic.availability == "Available":
             # Go directly to the create new event form.
+            title = "Success"
+
+            message = "{mechanic_name} has successfully been deployed to {station_name}".format(
+                mechanic_name=mechanic.name,
+                station_name=card_machine.station_name
+            )
+
+            buttons = [{"text": "Ok", "command": "self.new_notification"}]
             self.new_notification()
 
-        elif card_machine.defect == "Defect" and mechanic.availability == "Occupied":
-            # TODO: Maybe find the next closest available mechanic.
-            title = "Unfortunately"
-            message = "Unfortunately {} is {}, but {} is {}".format(
-                card_machine.station_name, card_machine.defect, mechanic.name, mechanic.availability.lower()
-            )
-            buttons = [{"text": "Ok", "command": "self.popup.destroy"}]
-
-        elif card_machine.defect == "Operational" and mechanic.availability == "Occupied":
-            # TODO: Maybe find the next closest available mechanic.
+        elif card_machine.defect == "Defect" or card_machine.defect == "Operational" and mechanic.availability == "Occupied":
             title = "Are you sure?"
-            message = "{} is {}, but {} is {}".format(
-                card_machine.station_name, card_machine.defect, mechanic.name, mechanic.availability.lower()
+
+            message = "{station_name} is {station_status}, and the closest mechanic is occupied. \n " \
+                      "The next is {mechanic_name} and is {distance} away, would you like to dispatch?".format(
+                station_name=card_machine.station_name,
+                station_status=card_machine.defect,
+                mechanic_name=next_mechanic[1].name,
+                distance=math.floor(next_mechanic[0])
             )
-            buttons = [{"text": "Yes, I'm sure", "command": "self.new_notification"},
-                       {"text": "Cancel", "command": "self.popup.destroy"}]
+
+            buttons = [
+                {"text": "Yes, I'm sure", "command": "self.new_notification"},
+                {"text": "Cancel", "command": "self.popup.destroy"}
+            ]
+
+            self.notification_information[0] = \
+                "{mechanic_name} was dispatched to {station_name}, travel time is {travel_time} minutes.".format(
+                    mechanic_name=next_mechanic[1].name,
+                    station_name=card_machine.station_name,
+                    travel_time=travel_time
+                )
 
         elif card_machine.defect == "Operational" and mechanic.availability == "Available":
             title = "Are you sure?"
-            message = "{} is {} and {} is {}".format(
-                card_machine.station_name, card_machine.defect, mechanic.name, mechanic.availability.lower()
-            )
-            buttons = [{"text": "Yes, I'm sure", "command": "self.new_notification"},
-                       {"text": "Cancel", "command": "self.popup.destroy"}]
 
-        self.notification_information = [
-            "{} was dispatched to {}, travel time is {} minutes.".format(
-                mechanic.name, card_machine.station_name, travel_time
-            ), mechanic, card_machine
-        ]
+            message = "{station_name} is {station_status} and {mechanic_name} is {mechanic_status}".format(
+                station_name=card_machine.station_name,
+                station_status=card_machine.defect,
+                mechanic_name=mechanic.name,
+                mechanic_status=mechanic.availability.lower()
+            )
+
+            buttons = [
+                {"text": "Yes, I'm sure", "command": "self.new_notification"},
+                {"text": "Cancel", "command": "self.popup.destroy"}
+            ]
+
         self.new_popup(title, message, buttons, 450, 150, "#fcc63f")
+
+    def text_mechanic(self, mechanic_name : Mechanic, card_machine: CardMachine):
+        message = twilio.rest.messages.create(
+               to="+31642357996",
+               from_="+3197014200218",
+               body= mechanic_name + ",you are expected to the fix the machine at: {}"+ card_machine.station_name)
+
