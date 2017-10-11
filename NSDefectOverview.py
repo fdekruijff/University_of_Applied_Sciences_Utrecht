@@ -144,11 +144,50 @@ class NSDefectOverview(tk.Tk):
                             Et.SubElement(mechanic,"schedule").text = str(x.schedule)
                             Et.SubElement(mechanic,"availability").text = str(x.availability)
                             Et.SubElement(mechanic,"shift").text = str(x.shift)
+                            Et.SubElement(mechanic,"phone").text = str(x.phone_number)
 
 
                         tree = Et.ElementTree(mechanics)
                         tree.write('mechanic.xml')
+            else:
+                tree = Et.parse('mechanic.xml')
+                mechanics = tree.getroot()
+                for x in mechanics:
+                    mname = ""
+                    mgender = ""
+                    mage = ""
+                    mlatitude =""
+                    mlongitude =""
+                    mregion =""
+                    mschedule= ""
+                    mavailability =""
+                    mshift = ""
+                    mphone= ""
 
+                    for meta in x:
+                        if meta.tag == "name":
+                            mname = meta.text
+                        if meta.tag == "gender":
+                            mgender = meta.text
+                        if meta.tag == "age":
+                            mage = meta.text
+                        if meta.tag == "Lat":
+                            mlatitude = meta.text
+                        if meta.tag == "Lon":
+                            mlongitude = meta.text
+                        if meta.tag == "region":
+                            mregion = meta.text
+                        if meta.tag == "schedule":
+                            mschedule = meta.text
+                        if meta.tag == "availability":
+                            mavailability = meta.text
+                        if meta.tag == "shift":
+                            mshift = meta.text
+                        if meta.tag == "phone":
+                            mphone = meta.text
+
+
+                    self.mechanicList.append(Mechanic(mname, mgender, mage ,mlatitude, mlongitude,mregion, mschedule, mavailability, mshift, mphone ))
 
                 self.mechanicList.sort(key=operator.attrgetter('name'))
         else:
