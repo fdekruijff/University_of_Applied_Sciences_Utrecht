@@ -125,7 +125,29 @@ class NSDefectOverview(tk.Tk):
             if os.stat("mechanic.xml").st_size == 0:
                 for province in GenerateMechanic.regions:
                     for amount in range(5):
-                        self.mechanicList.append(GenerateMechanic.generate_mechanic(province))
+                        mechanic = GenerateMechanic.generate_mechanic(province)
+                        self.mechanicList.append(mechanic)
+
+                        # schrijf mechanic xml
+                        mechanics = Et.Element("mechanics")
+
+                        for x in self.mechanicList:
+                            mechanic = Et.SubElement(mechanics, "mechanic")
+                            Et.SubElement(mechanic,"name").text = str(x.name)
+                            Et.SubElement(mechanic,"gender").text = str(x.gender)
+                            Et.SubElement(mechanic,"age").text = str(x.age)
+                            Et.SubElement(mechanic,"latitude").text = str(x.latitude)
+                            Et.SubElement(mechanic,"longitude").text = str(x.longitude)
+                            Et.SubElement(mechanic,"region").text = str(x.region)
+                            Et.SubElement(mechanic,"schedule").text = str(x.schedule)
+                            Et.SubElement(mechanic,"availability").text = str(x.availability)
+                            Et.SubElement(mechanic,"shift").text = str(x.shift)
+
+
+                        tree = Et.ElementTree(mechanics)
+                        tree.write('mechanic.xml')
+
+
                 self.mechanicList.sort(key=operator.attrgetter('name'))
         else:
             open('mechanic.xml', 'w+')
