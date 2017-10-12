@@ -4,9 +4,11 @@
 """
 
 import random
+
 import names
 import requests
-from Mechanic import Mechanic
+
+from Classes.Mechanic import Mechanic
 
 
 class GenerateMechanic:
