@@ -14,16 +14,16 @@ from tkinter import *
 import googlemaps
 import requests
 import twilio.rest
+from Classes.CardMachine import CardMachine
+from Pages.CardMachineOverviewPage import CardMachineOverviewPage
+from Classes.GenerateMechanic import GenerateMechanic
+from Classes.Mechanic import Mechanic
+from Pages.MechanicOverviewPage import MechanicOverviewPage
+from Pages.RegisterNewMechanicPage import RegisterNewMechanicPage
+from Pages.StartPage import StartPage
 
-from CardMachine import CardMachine
-from CardMachineOverviewPage import CardMachineOverviewPage
-from GenerateMechanic import GenerateMechanic
-from Mechanic import Mechanic
-from MechanicOverviewPage import MechanicOverviewPage
-from Notification import Notification
-from NotificationPage import NotificationPage
-from RegisterNewMechanicPage import RegisterNewMechanicPage
-from StartPage import StartPage
+from Classes.Notification import Notification
+from Pages.NotificationPage import NotificationPage
 
 
 class NSDefectOverview(tk.Tk):
