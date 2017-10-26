@@ -238,6 +238,7 @@ def socket_write(data: str, data_header: str):
         exit()
     client_socket.send(message.encode('ascii'))
 
+
 def socket_read():
     data = None
     try:
