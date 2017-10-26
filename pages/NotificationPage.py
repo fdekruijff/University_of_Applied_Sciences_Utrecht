@@ -76,4 +76,4 @@ class NotificationPage(tk.Frame):
             entry = "{time}" \
                     "                       " \
                     "{message}".format(time=notification.time, message= notification.message)
-            self.notificationListBox.insert(END, entry)
+            self.notificationListBox.insert(0, entry)
