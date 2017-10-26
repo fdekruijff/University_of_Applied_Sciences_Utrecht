@@ -19,6 +19,8 @@ message2 = "\nLocker {} has been reserved, thank you for using this service.\n"
 message3 = "\nLocker {} has been opened.\nYour access to locker {} has been revoked.\n"
 message4 = "\nLocker {} has been opened.\n"
 message5 = "\nThis locker is currently not in use, please try a different locker.\n"
+message6 = "\nThere is 1 locker available.\n"
+message7 = "\nThere are {} lockers available.\n"
 
 menu = "1. I want a new locker\n" \
        "2. I want to open my locker\n" \
@@ -170,7 +172,7 @@ def update_locker(locker_number: int, in_use: str, pin_code: str, line_number: i
 
 def new_locker():
     """ Finds available locker and updates database with information """
-    # Loop through the available lockers and check if it's occupied or not.
+    # Loop through the available lockers and check if it'server_socket occupied or not.
     locker_number = get_free_locker()
 
     if locker_number:
@@ -257,11 +259,11 @@ def check_availability():
 
     if len(free_locker_list) != 0:
         if len(free_locker_list) == 1:
-            print("\nThere is 1 locker available.\n")
+            print(message6)
         else:
-            print("\nThere are {} lockers available.\n".format(len(free_locker_list)))
+            print(message7.format(len(free_locker_list)))
     else:
-        print("\nThere are no available lockers at this time.\n")
+        print(error3)
 
 
 if __name__ == '__main__':
