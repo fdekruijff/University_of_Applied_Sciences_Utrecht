@@ -1,6 +1,7 @@
 import datetime
 import socket
 import time
+import json
 from _thread import *
 
 from ClientNode import ClientNode
@@ -39,7 +40,12 @@ def parse_socket_data(client_uuid, data_header, data):
     if data_header == "UUID":
         return data
     elif data_header == "STATUS_UPD":
-        pass
+        json_data = json.loads(data)
+        client.ip_address = json_data['ip_address']
+        client.port = json_data['port']
+        client.uuid = json_data['UUID']
+        client.alarm_tripped = json_data['alarm_tripped']
+        client.online = json_data['online']
     elif data_header == "IS_ALIVE" and data == "ACK":
         client.online = True
 
@@ -59,17 +65,22 @@ def socket_write(conn, message: str, client_uuid):
     if debug: print("{} - Server send: {}".format(get_time(), message))
     try:
         conn.send(message.encode('ascii'))
-    except ConnectionError:
+    except ConnectionError or OSError:
         remove_client(client_uuid)
 
 
 def socket_read(connection):
     while True:
         try:
-            data = connection.recv(2048).decode('utf-8').strip().split(',')
+            data = connection.recv(4096).decode('utf-8').strip().split(',')
             if debug: print("{} - Server received: {}".format(get_time(), data))
+            try:
+                if data[0] or data[1] or data[2]:
+                   pass
+            except IndexError:
+                continue
             parse_socket_data(data[0], data[1], data[2])
-        except ConnectionError:
+        except ConnectionError or OSError:
             if debug: print("{} - Cannot connect to client".format(get_time()))
             return
 
@@ -85,7 +96,8 @@ def clients_alive():
         for client in client_list:
             try:
                 socket_write(client.connection_handler, "IS_ALIVE", client.uuid)
-            except ConnectionError:
+                socket_write(client.connection_handler, "STATUS_UPD", client.uuid)
+            except ConnectionError or OSError:
                 remove_client(uuid)
         time.sleep(2.5)
 

@@ -1,8 +1,9 @@
+import datetime
 import socket
 import time
 import uuid
-import datetime
 from _thread import *
+
 import RPi.GPIO as GPIO
 
 HOST = '192.168.42.2'
@@ -185,13 +186,13 @@ def gpio_mainloop():
         # Send some test
         lcd_string(LCD_text_1 + u' \u005C', LCD_LINE_1)
         lcd_string(LCD_text_2, LCD_LINE_2)
-        #time.sleep(3)  # 3 second delay
+        # time.sleep(3)  # 3 second delay
         alarm_system_on()
         alarm_system_off()
         alarm_trigger()
 
         # Send some text
-        #lcd_string(LCD_text_1 + ' |', LCD_LINE_1)
+        # lcd_string(LCD_text_1 + ' |', LCD_LINE_1)
         lcd_string(LCD_text_2, LCD_LINE_2)
 
         # time.sleep(3)  # 3 second delay
@@ -200,7 +201,7 @@ def gpio_mainloop():
         alarm_trigger()
 
         # Send some text
-        #lcd_string(LCD_text_1+' /', LCD_LINE_1)
+        # lcd_string(LCD_text_1+' /', LCD_LINE_1)
         lcd_string(LCD_text_2, LCD_LINE_2)
         #
         # time.sleep(3)
@@ -209,12 +210,19 @@ def gpio_mainloop():
         alarm_trigger()
 
         # Send some text
-        #lcd_string(LCD_text_1 + ' -', LCD_LINE_1)
+        # lcd_string(LCD_text_1 + ' -', LCD_LINE_1)
         lcd_string(LCD_text_2, LCD_LINE_2)
 
 
 def get_time():
     return datetime.datetime.now().strftime('%d-%m-%Y %X')
+
+
+def has_timeout():
+    if time.time() - last_ping >= 3:
+        if debug: print("{} - There is no longer a connection to the server")
+        alarm_trigger()
+        exit()
 
 
 def parse_socket_data(data: str):
@@ -237,6 +245,8 @@ def parse_socket_data(data: str):
         last_ping = time.time()
     elif data == "UUID_REQ":
         socket_write(str(UUID), "UUID")
+    elif data == "STATUS_UPD":
+        socket_write("{'online': " + str(alarm_tripped) + "}", "STATUS_UPDM")
 
 
 def socket_write(data: str, data_header: str):
@@ -253,8 +263,8 @@ def socket_write(data: str, data_header: str):
 def socket_read():
     data = None
     try:
-        data = client_socket.recv(2048)
-    except ConnectionResetError or ConnectionAbortedError:
+        data = client_socket.recv(4096)
+    except ConnectionResetError or ConnectionAbortedError or KeyboardInterrupt:
         if debug: print("{} - Connection has been terminated by the server.".format(get_time()))
         exit()
     data = data.decode('utf-8').strip().split(',')
@@ -273,6 +283,9 @@ if __name__ == '__main__':
             exit()
         finally:
             if debug: print("{} - Successfully connect to IP:{}, PORT:{}".format(get_time(), HOST, PORT))
+
+        # start_new_thread(gpio_mainloop, ())
+        start_new_thread(has_timeout, ())
 
         while True:
             socket_read()
