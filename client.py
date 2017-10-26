@@ -16,7 +16,7 @@ alarm_enabled = False
 alarm_interval_seconds = 5
 
 
-def parse_data(data: str):
+def parse_socket_data(data: str):
     if data == "REG_COMPLETE":
         registered = True
     elif data == "ALRM_TRIP":
@@ -35,40 +35,36 @@ def parse_data(data: str):
         socket_write(str(UUID), "UUID")
 
 
-def socket_write(message: str, data_header: str):
+def socket_write(data: str, data_header: str):
     """
         return[0] = Client node UUID
         return[1] = data_header
         return[2] = data
     """
-    message = str(UUID) + "," + data_header + "," + message
+    message = str(UUID) + "," + data_header + "," + data
     client_socket.send(message.encode('ascii'))
 
 
 def socket_is_alive():
-    global connected
-    try:
-        while True:
-            socket_write("IS_ALIVE", "")
-            data = client_socket.recv(2048).decode('utf-8').strip()
-            if data == "ACK":
-                connected = True
-            else:
-                connected = False
-            time.sleep(1)
-    finally:
-        client_socket.close()
+    while True:
+        socket_write("IS_ALIVE", "")
+        data = client_socket.recv(2048).decode('utf-8').strip()
+        print(data)
+        if data == "ACK":
+            connected = True
+        else:
+            connected = False
+        time.sleep(1)
 
 
 def socket_read():
-    try:
-        while True:
-            data = client_socket.recv(2048)
-            data = data.decode('utf-8').strip().split(',')
-            if (data[0] == UUID) or (data[0] == "BROADCAST"):
-                return parse_data(data[1])
-    finally:
-        client_socket.close()
+    data = client_socket.recv(2048)
+    data = data.decode('utf-8').strip().split(',')
+    if (data[0] == UUID) or (data[0] == "BROADCAST"):
+        return parse_socket_data(data[1])
+
+    if not connected:
+        print("Not connected anymore")
 
 
 if __name__ == '__main__':
@@ -81,8 +77,6 @@ if __name__ == '__main__':
     finally:
         print("Successfully connect to IP:{}, PORT:{}".format(HOST, PORT))
 
-    while connected:
-        start_new_thread(socket_is_alive, ())
-        start_new_thread(socket_read, ())
-    else:
-        print("Not connected anymore!")
+    start_new_thread(socket_is_alive, ())
+    while True:
+        socket_read()
