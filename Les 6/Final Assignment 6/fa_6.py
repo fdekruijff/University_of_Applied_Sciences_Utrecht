@@ -235,11 +235,11 @@ def open_locker(return_locker: bool):
                     # If return_locker is False, just notify that the locker is now open.
                     print(message4.format(locker_number))
             else:
-                # The pin code was not correct, notify and recursively recall this function to start over.
+                # The pin code was not correct, notify and recursively recall this function to alarm_running over.
                 print(error4)
                 open_locker(return_locker)
         else:
-            # The locker is not in use, notify and recursively recall this function to start over.
+            # The locker is not in use, notify and recursively recall this function to alarm_running over.
             print(message5)
             open_locker(return_locker)
 

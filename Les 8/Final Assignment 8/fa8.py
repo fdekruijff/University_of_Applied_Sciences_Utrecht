@@ -51,6 +51,6 @@ def notify_journey(stations, begin_station, end_station):
     print("You get out on station : {}".format(end_station))
 
 
-start = get_begin_station(stations_list)
-end = get_end_station(stations_list, start)
-notify_journey(stations_list, start, end)
+alarm_running = get_begin_station(stations_list)
+end = get_end_station(stations_list, alarm_running)
+notify_journey(stations_list, alarm_running, end)
