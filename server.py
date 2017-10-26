@@ -22,6 +22,15 @@ def find_client(client_uuid: str) -> ClientNode:
             return x
 
 
+def remove_client(client_uuid):
+    client = find_client(client_uuid)
+    client.online = False
+    client.connection_handler.close()
+    client_list.remove(client)
+    if debug: print(
+        "{} - Client with UUID {} has lost connection and has been unregistered.".format(get_time(), client_uuid))
+
+
 def parse_socket_data(client_uuid, data_header, data):
     client = find_client(client_uuid)
     if data == "ALRM_TRIP":
@@ -50,20 +59,19 @@ def socket_write(conn, message: str, client_uuid):
     if debug: print("{} - Server send: {}".format(get_time(), message))
     try:
         conn.send(message.encode('ascii'))
-    except ConnectionAbortedError:
-        client = find_client(client_uuid)
-        client.online = False
-        client.connection_handler.close()
-        client_list.remove(client)
-        if debug: print(
-            "{} - Client with UUID {} has lost connection and has been unregistered.".format(get_time(), client_uuid))
+    except ConnectionError:
+        remove_client(client_uuid)
 
 
 def socket_read(connection):
     while True:
-        data = connection.recv(2048).decode('utf-8').strip().split(',')
-        if debug: print("{} - Server received: {}".format(get_time(), data))
-        parse_socket_data(data[0], data[1], data[2])
+        try:
+            data = connection.recv(2048).decode('utf-8').strip().split(',')
+            if debug: print("{} - Server received: {}".format(get_time(), data))
+            parse_socket_data(data[0], data[1], data[2])
+        except ConnectionError:
+            if debug: print("{} - Cannot connect to client".format(get_time()))
+            return
 
 
 def get_uuid(connection):
@@ -75,7 +83,10 @@ def get_uuid(connection):
 def clients_alive():
     while True:
         for client in client_list:
-            socket_write(client.connection_handler, "IS_ALIVE", client.uuid)
+            try:
+                socket_write(client.connection_handler, "IS_ALIVE", client.uuid)
+            except ConnectionError:
+                remove_client(uuid)
         time.sleep(2.5)
 
 
