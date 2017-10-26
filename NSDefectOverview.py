@@ -4,26 +4,27 @@
 """
 
 import datetime
+import math
 import operator
 import os
 import tkinter as tk
 import xml.etree.ElementTree as Et
-from math import *
 from tkinter import *
+from win32api import GetSystemMetrics
 
 import googlemaps
 import requests
 import twilio.rest
-from Classes.CardMachine import CardMachine
-from Pages.CardMachineOverviewPage import CardMachineOverviewPage
-from Classes.GenerateMechanic import GenerateMechanic
-from Classes.Mechanic import Mechanic
-from Pages.MechanicOverviewPage import MechanicOverviewPage
-from Pages.RegisterNewMechanicPage import RegisterNewMechanicPage
-from Pages.StartPage import StartPage
 
-from Classes.Notification import Notification
-from Pages.NotificationPage import NotificationPage
+from classes.CardMachine import CardMachine
+from classes.GenerateMechanic import GenerateMechanic
+from classes.Mechanic import Mechanic
+from classes.Notification import Notification
+from pages.CardMachineOverviewPage import CardMachineOverviewPage
+from pages.MechanicOverviewPage import MechanicOverviewPage
+from pages.NotificationPage import NotificationPage
+from pages.RegisterNewMechanicPage import RegisterNewMechanicPage
+from pages.StartPage import StartPage
 
 
 class NSDefectOverview(tk.Tk):
@@ -40,8 +41,9 @@ class NSDefectOverview(tk.Tk):
         self.buttonForegroundColor = "#ffffff"
         self.buttonRelief = FLAT
 
+        # 2:3 aspect ratio
         self.width = 800
-        self.height = 380
+        self.height = 533
 
         self.cardMachineList = []
         self.mechanicList = []
@@ -55,13 +57,18 @@ class NSDefectOverview(tk.Tk):
         self.google_maps_api = googlemaps.Client(key='AIzaSyB3sE6Ekts-GoPlZ8vJ8P8i0UL1rVFnnPI')
         self.twilio_api = twilio.rest.Client("ACdf5a5cafa61b2fa3c98615176e80a6ac", "514dcdd9428ece0db966ec011a93a084")
 
-        self.geometry("{}x{}+400+150".format(self.width, self.height))
+        self.geometry("{}x{}+{}+{}".format(self.width, self.height,
+                                           int(math.floor(GetSystemMetrics(0)) / 2 - self.width / 2),
+                                           int(math.floor(GetSystemMetrics(1)) / 2 - self.height / 2) - 100)
+                      )
+
         self.title("NS Defect Overview")
         self.resizable(0, 0)
 
         # Initialise data
         self.populate_card_machine_list()
         self.populate_mechanic_list()
+        self.read_notifications()
 
         # Initialise TkInter container settings.
         container.pack(side="top", fill="both", expand=True)
@@ -121,8 +128,39 @@ class NSDefectOverview(tk.Tk):
             if is_in_netherlands:
                 self.cardMachineList.append(CardMachine(station_name, longitude, latitude))
 
+    def read_notifications(self):
+        if os.path.isfile("notification.xml"):
+            if os.stat("notification.xml").st_size == 0:
+                notifications = Et.Element("notifications")
+                tree = Et.ElementTree(notifications)
+                tree.write('notification.xml')
+            else:
+                tree = Et.parse('notification.xml')
+                for x in tree.getroot():
+                    time = message = ""
+                    for meta in x:
+                        if meta.tag == 'time':
+                            time = meta.text
+                        if meta.tag == 'message':
+                            message = meta.text
+                    self.notificationList.append(Notification(datetime.datetime.strptime(
+                        time, "%d-%m-%Y %H:%M"), message))
+                self.notificationList.sort(key=operator.attrgetter('time'))
+                # self.notificationList.reverse()
+        else:
+            open('notification.xml', 'w')
+            self.read_notifications()
+
+    def write_notification(self, notification: Notification):
+        tree = Et.parse('notification.xml')
+        root = tree.getroot()
+        notifications = Et.SubElement(Et.Element("notifications"), "notification")
+        Et.SubElement(notifications, "time").text = notification.time
+        Et.SubElement(notifications, "message").text = notification.message
+        root.append(notifications)
+        tree.write("notification.xml")
+
     def populate_mechanic_list(self):
-        """ Randomly generates meta data for a new mechanic. """
         if os.path.isfile("mechanic.xml"):
             if os.stat("mechanic.xml").st_size == 0:
                 for province in GenerateMechanic.regions:
@@ -130,39 +168,25 @@ class NSDefectOverview(tk.Tk):
                         mechanic = GenerateMechanic.generate_mechanic(province)
                         self.mechanicList.append(mechanic)
 
-                        # schrijf mechanic xml
                         mechanics = Et.Element("mechanics")
-
                         for x in self.mechanicList:
-                            mechanic = Et.SubElement(mechanics, "mechanic")
-                            Et.SubElement(mechanic, "name").text = str(x.name)
-                            Et.SubElement(mechanic, "gender").text = str(x.gender)
-                            Et.SubElement(mechanic, "age").text = str(x.age)
-                            Et.SubElement(mechanic, "latitude").text = str(x.latitude)
-                            Et.SubElement(mechanic, "longitude").text = str(x.longitude)
-                            Et.SubElement(mechanic, "region").text = str(x.region)
-                            Et.SubElement(mechanic, "schedule").text = str(x.schedule)
-                            Et.SubElement(mechanic, "availability").text = str(x.availability)
-                            Et.SubElement(mechanic, "shift").text = str(x.shift)
-                            Et.SubElement(mechanic, "phone").text = str(x.phone_number)
-
+                            Et.SubElement(Et.SubElement(mechanics, "mechanic"), "name").text = str(x.name)
+                            Et.SubElement(Et.SubElement(mechanics, "mechanic"), "gender").text = str(x.gender)
+                            Et.SubElement(Et.SubElement(mechanics, "mechanic"), "age").text = str(x.age)
+                            Et.SubElement(Et.SubElement(mechanics, "mechanic"), "latitude").text = str(x.latitude)
+                            Et.SubElement(Et.SubElement(mechanics, "mechanic"), "longitude").text = str(x.longitude)
+                            Et.SubElement(Et.SubElement(mechanics, "mechanic"), "region").text = str(x.region)
+                            Et.SubElement(Et.SubElement(mechanics, "mechanic"), "schedule").text = str(x.schedule)
+                            Et.SubElement(Et.SubElement(mechanics, "mechanic"), "availability").text = str(
+                                x.availability)
+                            Et.SubElement(Et.SubElement(mechanics, "mechanic"), "shift").text = str(x.shift)
+                            Et.SubElement(Et.SubElement(mechanics, "mechanic"), "phone").text = str(x.phone_number)
                         tree = Et.ElementTree(mechanics)
                         tree.write('mechanic.xml')
             else:
                 tree = Et.parse('mechanic.xml')
-                mechanics = tree.getroot()
-                for x in mechanics:
-                    name = ""
-                    gender = ""
-                    age = ""
-                    latitude = ""
-                    longitude = ""
-                    region = ""
-                    schedule = ""
-                    availability = ""
-                    shift = ""
-                    phone = ""
-
+                for x in tree.getroot():
+                    name = gender = age = latitude = longitude = region = schedule = availability = shift = phone = ""
                     for meta in x:
                         if meta.tag == "name":
                             name = meta.text
@@ -186,12 +210,12 @@ class NSDefectOverview(tk.Tk):
                             phone = meta.text
 
                     self.mechanicList.append(
-                        Mechanic(name, gender, age, latitude, longitude, region, schedule, availability, shift,
-                                 phone))
+                        Mechanic(name, gender, age, latitude, longitude, region, schedule, availability, shift, phone)
+                    )
 
-                self.mechanicList.sort(key=operator.attrgetter('name'))
+            self.mechanicList.sort(key=operator.attrgetter('name'))
         else:
-            open('mechanic.xml', 'w+')
+            open('mechanic.xml', 'w')
             self.populate_mechanic_list()
 
     @staticmethod
@@ -201,12 +225,13 @@ class NSDefectOverview(tk.Tk):
         on the earth (specified in decimal degrees)
         """
         # convert decimal degrees to radians
-        longitude1, latitude1, longitude2, latitude2 = map(radians, [longitude1, latitude1, longitude2, latitude2])
+        longitude1, latitude1, longitude2, latitude2 = map(math.radians, [longitude1, latitude1, longitude2, latitude2])
         # haversine formula
         delta_longitude = longitude2 - longitude1
         delta_latitude = latitude2 - latitude1
-        a = sin(delta_latitude / 2) ** 2 + cos(latitude1) * cos(latitude2) * sin(delta_longitude / 2) ** 2
-        c = 2 * asin(sqrt(a))
+        a = math.sin(delta_latitude / 2) ** 2 + math.cos(latitude1) * math.cos(latitude2) * math.sin(
+            delta_longitude / 2) ** 2
+        c = 2 * math.asin(math.sqrt(a))
         d = 6367 * c
         return d
 
@@ -279,6 +304,7 @@ class NSDefectOverview(tk.Tk):
         self.notification_information[1].availability = "Occupied"
         self.notificationList.append(Notification(datetime.datetime.now(), self.notification_information[0]))
         self.popup.destroy()
+        self.write_notification(self.notificationList[-1])
 
     def dispatch_mechanic(self, card_machine: CardMachine, mechanic: Mechanic):
         """
@@ -354,11 +380,15 @@ class NSDefectOverview(tk.Tk):
                 {"text": "Cancel", "command": "self.popup.destroy"}
             ]
 
-        self.new_popup(title, message, buttons, 450, 150, "#fcc63f")
+        self.new_popup(title, message, buttons, 450, 125, "#fcc63f")
 
     def send_sms(self, message, number):
-        self.twilio_api.messages.create(
-            to=number,
-            from_="+3197014200218",
-            body=message
-        )
+        try:
+            pass
+            # self.twilio_api.messages.create(
+            #     to=number,
+            #     from_="+3197014200218",
+            #     body=message
+            # )
+        except twilio.base.exceptions.TwilioRestException:
+            print("Number not accepted")

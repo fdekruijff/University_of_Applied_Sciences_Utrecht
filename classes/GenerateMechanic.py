@@ -8,7 +8,7 @@ import random
 import names
 import requests
 
-from Classes.Mechanic import Mechanic
+from classes.Mechanic import Mechanic
 
 
 class GenerateMechanic:
