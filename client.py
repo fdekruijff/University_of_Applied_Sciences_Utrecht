@@ -1,6 +1,7 @@
 import socket
 import time
 import uuid
+import datetime
 from _thread import *
 import RPi.GPIO as GPIO
 
@@ -12,6 +13,8 @@ client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 connected = False
 registered = False
+debug = True
+last_ping = 0
 alarm_tripped = False
 alarm_enabled = False
 alarm_interval_seconds = 5
@@ -210,7 +213,13 @@ def gpio_mainloop():
         lcd_string(LCD_text_2, LCD_LINE_2)
 
 
+def get_time():
+    return datetime.datetime.now().strftime('%d-%m-%Y %X')
+
+
 def parse_socket_data(data: str):
+    global registered
+    global last_ping
     if data == "REG_COMPLETE":
         registered = True
     elif data == "ALRM_TRIP":
@@ -224,7 +233,8 @@ def parse_socket_data(data: str):
     elif data == "CHNG_INTERVAL":
         pass
     elif data == "IS_ALIVE":
-        socket_write("ACK", "")
+        socket_write("ACK", "IS_ALIVE")
+        last_ping = time.time()
     elif data == "UUID_REQ":
         socket_write(str(UUID), "UUID")
 
@@ -236,29 +246,21 @@ def socket_write(data: str, data_header: str):
         return[2] = data
     """
     message = str(UUID) + "," + data_header + "," + data
+    if debug: print("{} - Client send: {}".format(get_time(), message))
     client_socket.send(message.encode('ascii'))
 
 
-def socket_is_alive():
-    while True:
-        socket_write("IS_ALIVE", "")
-        data = client_socket.recv(2048).decode('utf-8').strip()
-        print(data)
-        if data == "ACK":
-            connected = True
-        else:
-            connected = False
-        time.sleep(1)
-
-
 def socket_read():
-    data = client_socket.recv(2048)
+    data = None
+    try:
+        data = client_socket.recv(2048)
+    except ConnectionResetError or ConnectionAbortedError:
+        if debug: print("{} - Connection has been terminated by the server.".format(get_time()))
+        exit()
     data = data.decode('utf-8').strip().split(',')
+    if debug: print("{} - Client received: {}".format(get_time(), data))
     if (data[0] == UUID) or (data[0] == "BROADCAST"):
         return parse_socket_data(data[1])
-
-    if not connected:
-        print("Not connected anymore")
 
 
 if __name__ == '__main__':
@@ -267,14 +269,10 @@ if __name__ == '__main__':
             client_socket.connect((HOST, PORT))
             connected = True
         except socket.error as e:
-            print("Socket error {}".format(e))
+            if debug: print("{} - Socket error {}".format(get_time(), e))
             exit()
         finally:
-            print("Successfully connect to IP:{}, PORT:{}".format(HOST, PORT))
-
-        lcd_init()
-        start_new_thread(socket_is_alive, ())
-        start_new_thread(gpio_mainloop, ())
+            if debug: print("{} - Successfully connect to IP:{}, PORT:{}".format(get_time(), HOST, PORT))
 
         while True:
             socket_read()
