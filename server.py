@@ -43,7 +43,7 @@ def send_client_data():
 
 def parse_socket_data(client_uuid, data_header, data):
     client = find_client(client_uuid)
-    print(client)
+    print(type(client))
     if data == "ALRM_TRIP":
         client.alarm_tripped = True
 
@@ -61,8 +61,7 @@ def parse_socket_data(client_uuid, data_header, data):
     elif data_header == "ALRM_STATUS":
         client.alarm_status = bool(data)
     elif data_header == "CLIENT_STATUS_UPD":
-        socket_write(client.connection_handler, send_client_data(), client_uuid)
-
+        client.connection_handler.send(str(str(client.uuid) + ",CLIENT_DATA," + send_client_data()).encode('ascii'))
 
 def socket_write(conn, message: str, client_uuid):
     """
@@ -135,7 +134,6 @@ if __name__ == '__main__':
         c, i = server_socket.accept()
 
         uuid = get_uuid(c)
-        print(uuid)
         y = ClientNode(i[0], i[1], uuid, c)
         client_list.append(y)
         if "GUI" in uuid: y.is_gui = True

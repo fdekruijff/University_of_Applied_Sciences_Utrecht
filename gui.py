@@ -3,6 +3,7 @@ import datetime
 import socket
 import uuid
 import time
+import json
 from _thread import *
 from tkinter import *
 
@@ -29,9 +30,13 @@ root.configure(background="#ebedeb")
 
 def parse_socket_data(data: str):
     global connected_to_server
-    if data == "UUID_REQ":
+    if data[1] == "UUID_REQ":
         socket_write(str(UUID), "UUID")
+        time.sleep(1.5)
         connected_to_server = True
+    if data[1] == "CLIENT_DATA":
+        pass
+        # TODO deze data is beetje fucked maar hier komt alle info binnen
 
 
 def get_time():
@@ -55,18 +60,23 @@ def socket_write(data: str, data_header: str):
     gui_socket.send(message.encode('ascii'))
 
 
-def socket_read():
+def init_socket_read():
     while True:
-        data = None
-        try:
-            data = gui_socket.recv(4096)
-        except ConnectionResetError or ConnectionAbortedError or KeyboardInterrupt:
-            if debug: print("{} - Connection has been terminated by the server.".format(get_time()))
-            exit()
-        data = data.decode('utf-8').strip().split(',')
-        if debug: print("{} - GUI received: {}".format(get_time(), data))
-        if (data[0] == str(UUID)) or (data[0] == "BROADCAST"):
-            return parse_socket_data(data[1])
+        socket_read()
+
+
+def socket_read():
+    # while True:
+    data = None
+    try:
+        data = gui_socket.recv(4096)
+    except ConnectionResetError or ConnectionAbortedError:
+        if debug: print("{} - Connection has been terminated by the server.".format(get_time()))
+        exit()
+    data = data.decode('utf-8').strip().split(',')
+    if debug: print("{} - GUI received: {}".format(get_time(), data))
+    if (data[0] == str(UUID)) or (data[0] == "BROADCAST"):
+        return parse_socket_data(data)
 
 
 def button_click():
@@ -158,6 +168,12 @@ label = Label(root,
 label.grid(row=0, column=1, padx=300)
 label.config(font=("Courier", 11))
 
+
+def task():
+    socket_read()
+    root.after(1000, task)
+
+
 if __name__ == '__main__':
     try:
         gui_socket.connect((HOST, PORT))
@@ -167,6 +183,7 @@ if __name__ == '__main__':
     finally:
         if debug: print("{} - Successfully connect to IP:{}, PORT:{}".format(get_time(), HOST, PORT))
 
-    start_new_thread(socket_read, ())
     start_new_thread(get_server_data, ())
+    start_new_thread(init_socket_read, ())
     mainloop()
+

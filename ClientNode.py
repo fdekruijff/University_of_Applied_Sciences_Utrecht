@@ -14,7 +14,7 @@ class ClientNode:
         self.is_gui = False
 
     def __str__(self):
-        return (
+        return json.dumps(json.loads(
             "{" +
             "\"ip_address\":\"" + str(self.ip_address) + "\"," +
             "\"port\":\"" + str(self.port) + "\"," +
@@ -23,5 +23,5 @@ class ClientNode:
             "\"alarm_tripped\":\"" + str(self.alarm_tripped) + "\"," +
             "\"online\":\"" + str(self.online) + "\"," +
             "\"is_gui\":\"" + str(self.is_gui) +
-            "\"}")
+            "\"}"))
 
