@@ -8,6 +8,7 @@ class ClientNode:
         self.connection_handler = connection_handler
         self.uuid = uuid
 
+        self.alarm_status = False
         self.alarm_tripped = False
         self.online = True
 

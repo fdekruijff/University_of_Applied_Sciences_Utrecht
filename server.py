@@ -48,6 +48,8 @@ def parse_socket_data(client_uuid, data_header, data):
         client.online = json_data['online']
     elif data_header == "IS_ALIVE" and data == "ACK":
         client.online = True
+    elif data_header == "ALRM_STATUS":
+        client.alarm_status = bool(data)
 
 
 def socket_write(conn, message: str, client_uuid):

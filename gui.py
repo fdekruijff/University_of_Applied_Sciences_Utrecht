@@ -87,6 +87,7 @@ def get_client_specifics(x):
         informationContainer.tempLabel.configure(text=client_info[label])
         rely += 0.085
 
+
 root.informationContainer = Frame()
 root.mechanicListBox = Listbox()
 root.mechanicListBox.place(relx=0.020, rely=0.15, relwidth=0.45, relheight=0.80)
