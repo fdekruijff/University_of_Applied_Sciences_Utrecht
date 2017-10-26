@@ -17,13 +17,13 @@ Follow these steps to get the software running on your nodes.
 1. Clone server.py to your server node
 
 ```
-wget https://github.com/fdekruijff/TICT-V1CSN-15-Miniproject/blob/master/server.py
+wget https://raw.githubusercontent.com/fdekruijff/TICT-V1CSN-15-Miniproject/master/server.py
 ```
 
 2. Clone client.py to your server node
 
 ```
-wget https://github.com/fdekruijff/TICT-V1CSN-15-Miniproject/blob/master/client.py
+wget https://raw.githubusercontent.com/fdekruijff/TICT-V1CSN-15-Miniproject/master/client.py
 ```
 
 3. Make sure your server node has a DHCP server running in the range of 192.168.42.1/24
@@ -42,8 +42,9 @@ python3 /path/to/file/client.py
 
 ## Getting the hardware wired up
 
-Will be added in the future.
+The following wiring scheme shows how the client nodes need to be wired up in order for the software to work.
 
+![wiring scheme](https://image.prntscr.com/image/eM4Ap6c7StyUspG2kR2-_g.png)
 
 ## Built With
 
