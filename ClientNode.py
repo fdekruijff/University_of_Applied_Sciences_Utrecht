@@ -11,18 +11,17 @@ class ClientNode:
         self.alarm_status = False
         self.alarm_tripped = False
         self.online = True
+        self.is_gui = False
 
-    def to_string(self) -> json:
-        """ Returns JSON object of instance """
-        return json.loads("{"
-                          "'ip_address': {ip_address},"
-                          "'port': {port},"
-                          "'UUID': {uuid},"
-                          "'alarm_tripped': {alarm_tripped},"
-                          "'online': {online}}".format(
-                            ip_address=self.ip_address,
-                            port=self.port,
-                            uuid=self.uuid,
-                            alarm_tripped=self.alarm_tripped,
-                            online=self.online
-                            ))
+    def __str__(self):
+        return (
+            "{" +
+            "\"ip_address\":\"" + str(self.ip_address) + "\"," +
+            "\"port\":\"" + str(self.port) + "\"," +
+            "\"uuid\":\"" + str(self.uuid) + "\"," +
+            "\"alarm_status\":\"" + str(self.alarm_status) + "\"," +
+            "\"alarm_tripped\":\"" + str(self.alarm_tripped) + "\"," +
+            "\"online\":\"" + str(self.online) + "\"," +
+            "\"is_gui\":\"" + str(self.is_gui) +
+            "\"}")
+

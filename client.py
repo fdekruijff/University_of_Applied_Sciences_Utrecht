@@ -2,7 +2,6 @@ import datetime
 import socket
 import time
 import uuid
-import sys
 from _thread import *
 
 import RPi.GPIO as GPIO
@@ -14,7 +13,7 @@ client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 # var GPIO
 run = True
-connected = False
+connected_to_server = False
 registered = False
 debug = True
 last_ping = 0
@@ -40,7 +39,7 @@ LCD_LINE_2 = 0xC0
 LCD_E_PULSE = 0.0005
 LCD_E_DELAY = 0.0005
 LCD_text_1 = " Alarm is off "
-LCD_text_2 = " Not connected "
+LCD_text_2 = " Not connected_to_server "
 
 GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BCM)  # Use BCM GPIO numbers
@@ -181,8 +180,6 @@ def gpio_mainloop():
     GPIO.output(13, 0)
 
     while True:
-
-
         if button(6) and system_on == False:
             alarm_system_on()
 
@@ -251,7 +248,7 @@ def socket_write(data: str, data_header: str):
         client_socket.send(message.encode('ascii'))
     except ConnectionResetError or ConnectionAbortedError:
         if debug: print("{} - Connection has been terminated by the server.".format(get_time()))
-        global LCD_text_1
+        global LCD_text_2
         LCD_text_2 = ' Not Connected'
         exit()
     client_socket.send(message.encode('ascii'))
@@ -274,7 +271,7 @@ if __name__ == '__main__':
     try:
         try:
             client_socket.connect((HOST, PORT))
-            connected = True
+            connected_to_server = True
         except socket.error as e:
             if debug: print("{} - Socket error {}".format(get_time(), e))
             exit()
