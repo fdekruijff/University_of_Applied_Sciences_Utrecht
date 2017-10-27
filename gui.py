@@ -1,17 +1,19 @@
 # GUI Alarmsysteem
 import datetime
+import random
 import socket
-import uuid
 import time
+import uuid
 import json
 from _thread import *
+from ClientNode import ClientNode
 from tkinter import *
 
 root = Tk()
 serverbool = True
 connected_to_server = False
 staataan = True
-HOST = '192.168.42.1'
+HOST = '145.89.96.103'
 PORT = 5555
 UUID = "GUI" + uuid.uuid4().hex
 debug = True
@@ -35,8 +37,34 @@ def parse_socket_data(data: str):
         time.sleep(1.5)
         connected_to_server = True
     if data[1] == "CLIENT_DATA":
-        pass
-        # TODO deze data is beetje fucked maar hier komt alle info binnen
+        json_data = ''
+        for x in range(2, len(data)):
+            json_data += data[x] + ","
+
+        while "},{" in json_data or "{{" in json_data:
+            json_data = json_data.replace("},{", "},\"" + str(random.uniform(0, 10)) + "\":{", 1)
+            json_data = json_data.replace("{{", "{ \"" + str(random.uniform(0, 10))+"\":{", 1)
+        json_data = json.loads(json_data[:-1])
+        ip_address, port, uuid, alarm_tripped, alarm_tripped, online, is_gui = "", "", "", "", "", "", ""
+        client_list.clear()
+        for x in json_data:
+            ip_address = json_data[x]['ip_address']
+            port = json_data[x]['port']
+            uuid = json_data[x]['uuid']
+            alarm_status = json_data[x]['alarm_status']
+            alarm_tripped = json_data[x]['alarm_tripped']
+            online = json_data[x]['online']
+            is_gui = json_data[x]['is_gui']
+            client = ClientNode(ip_address, port, uuid, None)
+            client.alarm_status = alarm_status
+            client.alarm_tripped = alarm_tripped
+            client.online = online
+            client.is_gui = is_gui
+            client_list.append(client)
+
+        print(len(client_list))
+
+
 
 
 def get_time():
@@ -144,6 +172,7 @@ def get_server_data():
             socket_write("", "CLIENT_STATUS_UPD")
             time.sleep(7.5)
 
+
 root.informationContainer = Frame()
 root.mechanicListBox = Listbox()
 root.mechanicListBox.place(relx=0.020, rely=0.15, relwidth=0.45, relheight=0.80)
@@ -186,4 +215,3 @@ if __name__ == '__main__':
     start_new_thread(get_server_data, ())
     start_new_thread(init_socket_read, ())
     mainloop()
-
