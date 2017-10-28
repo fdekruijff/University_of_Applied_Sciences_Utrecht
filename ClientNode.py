@@ -1,3 +1,9 @@
+"""
+    Computer Systems and Networks
+    University of Applied Sciences Utrecht
+    TICT-V1CSN-15 Project
+"""
+
 import json
 
 
@@ -14,7 +20,8 @@ class ClientNode:
         self.is_gui = False
 
     def __str__(self):
-        return json.dumps(json.loads(
+        """ Returns object parameters in String format for socket data transfer """
+        return (
             "{" +
             "\"ip_address\":\"" + str(self.ip_address) + "\"," +
             "\"port\":\"" + str(self.port) + "\"," +
@@ -23,5 +30,5 @@ class ClientNode:
             "\"alarm_tripped\":\"" + str(self.alarm_tripped) + "\"," +
             "\"online\":\"" + str(self.online) + "\"," +
             "\"is_gui\":\"" + str(self.is_gui) +
-            "\"}"))
+            "\"}")
 

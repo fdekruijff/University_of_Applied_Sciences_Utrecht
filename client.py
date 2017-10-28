@@ -1,14 +1,22 @@
+"""
+    Computer Systems and Networks
+    University of Applied Sciences Utrecht
+    TICT-V1CSN-15 Project
+"""
+
 import datetime
 import socket
 import time
+import sys
 import uuid
 import pygame
-import sys
-from _thread import *
 
 import RPi.GPIO as GPIO
 
-HOST = '145.89.96.103'
+from _thread import *
+
+
+HOST = ''  # Enter IP address of device where server.py is running
 PORT = 5555
 UUID = uuid.uuid4().hex
 client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -67,7 +75,7 @@ GPIO.setup(13, GPIO.OUT)
 
 
 def lcd_init():
-    # Initialise display
+    """ Initialise display """
     lcd_byte(0x33, LCD_CMD)  # 110011 Initialise
     lcd_byte(0x32, LCD_CMD)  # 110010 Initialise
     lcd_byte(0x06, LCD_CMD)  # 000110 Cursor move direction
@@ -78,11 +86,7 @@ def lcd_init():
 
 
 def lcd_byte(bits, mode):
-    # Send byte to data pins
-    # bits = data
-    # mode = True  for character
-    #        False for command
-
+    """ Send byte to data pins """
     GPIO.output(LCD_RS, mode)  # RS
 
     # High bits
@@ -121,7 +125,7 @@ def lcd_byte(bits, mode):
 
 
 def lcd_toggle_enable():
-    # Toggle enable
+    """ Toggle enable """
     time.sleep(LCD_E_DELAY)
     GPIO.output(LCD_E, True)
     time.sleep(LCD_E_PULSE)
@@ -130,6 +134,7 @@ def lcd_toggle_enable():
 
 
 def lcd_string(message, line):
+    """ Writes message to LCD on specified line """
     message = message.ljust(LCD_WIDTH, " ")
     lcd_byte(line, LCD_CMD)
     for i in range(LCD_WIDTH):
@@ -137,30 +142,35 @@ def lcd_string(message, line):
 
 
 def led_on(pin):
+    """ Turns pin to 1 """
     GPIO.output(pin, GPIO.HIGH)
 
 
 def led_off(pin):
+    """ Turns pin to 0 """
     GPIO.output(pin, GPIO.LOW)
 
 
 def button(x):
+    """ returns whether button is pressed or not """
     y = GPIO.input(x)
     if not y:
         return True
 
 
 def alarm_system_on():
+    """ Turn alarm system on, update hardware, software and server accordingly """
     global system_on
     global LCD_text_1
     led_on(26)
     system_on = True
     socket_write("", "ALRM_ON")
-    LCD_text_1 =' Sytem is on'
+    LCD_text_1 = ' System is on'
     time.sleep(0.2)
 
 
 def alarm_system_off():
+    """ Turn alarm system off, update hardware, software and server accordingly """
     global system_on
     global LCD_text_1
     led_off(26)
@@ -168,24 +178,25 @@ def alarm_system_off():
     led_off(13)
     system_on = False
     socket_write("", "ALRM_OFF")
-    LCD_text_1 = ' Sytem is off'
+    LCD_text_1 = ' System is off'
     time.sleep(0.5)
     pygame.mixer.music.stop()
 
 
-def flikker(x):
+def led_flicker(x):
+    """ Turns pin x on and off until told otherwise """
     while True:
         led_on(x)
         time.sleep(0.2)
         led_off(x)
         time.sleep(0.2)
-        if system_on == False:
-
+        if not system_on:
             led_off(x)
             break
 
 
 def alarm_trigger():
+    """ Triggers alarm, waits trigger_delay time before updating hardware, software and server """
     global server_disable_alarm
     alarm_tripped = True
     led_on(13)
@@ -196,17 +207,17 @@ def alarm_trigger():
             server_disable_alarm = False
             break
         global alarm_tripped
-        if time.time() - alarm_trigger_time >= trigger_delay and alarm_trigger_time != 0:
+        if (time.time() - alarm_trigger_time >= trigger_delay) and (alarm_trigger_time != 0):
             pygame.mixer.music.play()
             socket_write("", "ALRM_TRIP")
             time.sleep(0.5)
             led_off(13)
-            start_new_thread(flikker(19), ())
-            print(alarm_tripped)
+            start_new_thread(led_flicker(19), ())
             break
 
 
 def alarm_trigger_off():
+    """ Turns the alarm off """
     global server_disable_alarm
     global alarm_tripped
     led_off(19)
@@ -218,6 +229,7 @@ def alarm_trigger_off():
 
 
 def gpio_mainloop():
+    """ Contains general GPIO logic for LED, LCD and buttons """
     global alarm_running
     global system_on
     global alarm_trigger_time
@@ -247,10 +259,12 @@ def gpio_mainloop():
 
 
 def get_time():
+    """ Returns current time in format %d-%m-%Y %X """
     return datetime.datetime.now().strftime('%d-%m-%Y %X')
 
 
 def has_timeout():
+    """ Check if the client is no longer connected if it has not received socket data for more than 5.5 seconds """
     while True:
         time.sleep(10)
         if time.time() - last_ping >= 5.5 and last_ping != 0:
@@ -259,10 +273,12 @@ def has_timeout():
             LCD_text_2 = ' Not Connected'
             led_on(13)
             alarm_trigger()
-            exit()
+            stop_client()
+            sys.exit()
 
 
 def parse_socket_data(data: str):
+    """ Handles socket data accordingly """
     global registered
     global last_ping
     global server_disable_alarm
@@ -299,9 +315,8 @@ def parse_socket_data(data: str):
 
 def socket_write(data: str, data_header: str):
     """
-        return[0] = Client node UUID
-        return[1] = data_header
-        return[2] = data
+        Writes a concatenation of the client UUID, data header and data to
+        the connection socket of this program instance
     """
     global LCD_text_2
     message = str(UUID) + "," + data_header + "," + data
@@ -312,17 +327,31 @@ def socket_write(data: str, data_header: str):
     except ConnectionResetError or ConnectionAbortedError:
         if debug: print("{} - Connection has been terminated by the server.".format(get_time()))
         LCD_text_2 = ' Not Connected'
-        exit()
+        stop_client()
+        sys.exit()
     client_socket.send(message.encode('ascii'))
 
 
+def stop_client():
+    """ Cleans up GPIO when exiting """
+    lcd_byte(0x01, LCD_CMD)
+    lcd_string(" Goodbye!", LCD_LINE_1)
+    GPIO.output(26, 0)
+    GPIO.output(19, 0)
+    GPIO.output(13, 0)
+    
+
 def socket_read():
-    data = None
+    """
+        Listens to the connection socket of this program instance
+        and passes that data to the parse_socket_data() function
+    """
     try:
         data = client_socket.recv(4096)
     except ConnectionResetError or ConnectionAbortedError or KeyboardInterrupt:
         if debug: print("{} - Connection has been terminated by the server.".format(get_time()))
-        exit()
+        stop_client()
+        sys.exit()
     data = data.decode('utf-8').strip().split(',')
     if data[0] == '':
 
@@ -339,7 +368,7 @@ if __name__ == '__main__':
             connected_to_server = True
         except socket.error as e:
             if debug: print("{} - Socket error {}".format(get_time(), e))
-            exit()
+            sys.exit()
         finally:
             if debug: print("{} - Successfully connect to IP:{}, PORT:{}".format(get_time(), HOST, PORT))
 
@@ -350,8 +379,4 @@ if __name__ == '__main__':
         while True:
             socket_read()
     finally:
-        lcd_byte(0x01, LCD_CMD)
-        lcd_string(" Goodbye!", LCD_LINE_1)
-        GPIO.output(26, 0)
-        GPIO.output(19, 0)
-        GPIO.output(13, 0)
+        stop_client()

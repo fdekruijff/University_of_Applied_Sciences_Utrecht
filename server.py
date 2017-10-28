@@ -1,6 +1,13 @@
+"""
+    Computer Systems and Networks
+    University of Applied Sciences Utrecht
+    TICT-V1CSN-15 Project
+"""
+
 import datetime
 import json
 import socket
+import sys
 import time
 from _thread import *
 
@@ -9,21 +16,24 @@ from ClientNode import ClientNode
 HOST = ''
 PORT = 5555
 client_list = []
-debug = True
+debug = False
 server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 
 def get_time():
+    """ Returns current time in format %d-%m-%Y %X """
     return datetime.datetime.now().strftime('%d-%m-%Y %X')
 
 
 def find_client(client_uuid: str) -> ClientNode:
+    """ Returns the ClientNode object that matches the passed UUID """
     for x in client_list:
         if client_uuid == x.uuid:
             return x
 
 
 def remove_client(client_uuid):
+    """ Removes a client from the client list, this includes closing the connection handler and updating the status """
     client = find_client(client_uuid)
     if client:
         client.online = False
@@ -34,6 +44,7 @@ def remove_client(client_uuid):
 
 
 def send_client_data():
+    """ Formats ClientObject parameter JSON data for all clients in client_list """
     return_string = "{"
     for client in client_list:
         return_string = return_string + str(client) + ','
@@ -43,6 +54,7 @@ def send_client_data():
 
 
 def parse_socket_data(client_uuid, data_header, data):
+    """ Handles socket data accordingly, can be either data or a data_header as data type """
     client = find_client(client_uuid)
     if data_header == "UUID":
         return data
@@ -71,8 +83,8 @@ def parse_socket_data(client_uuid, data_header, data):
 
 def socket_write(conn, message: str, client_uuid):
     """
-        return[0] = Client node UUID
-        return[1] = data
+        Generic function that writes a concatenation of the client UUID
+        and the message data to the passed connection socket
     """
     if not client_uuid:
         # Broadcast
@@ -89,6 +101,10 @@ def socket_write(conn, message: str, client_uuid):
 
 
 def socket_read(connection):
+    """
+        Generic function that listens to the connection parameter socket and passes that data
+        to the parse_socket_data() function
+    """
     while True:
         try:
             data = connection.recv(4096).decode('utf-8').strip().split(',')
@@ -113,6 +129,7 @@ def socket_read(connection):
 
 
 def get_uuid(connection):
+    """ Function is used during client registration to request client for their UUID """
     socket_write(connection, "UUID_REQ", None)
     try:
         data = connection.recv(2048).decode('utf-8').strip().split(',')
@@ -123,6 +140,10 @@ def get_uuid(connection):
 
 
 def clients_alive():
+    """
+        Sends IS_ALIVE and STATUS_UPD messages to every connected client to check if the
+        client is online and to receive it's last status
+    """
     while True:
         for client in client_list:
             try:
@@ -140,7 +161,7 @@ if __name__ == '__main__':
         server_socket.listen(2)
     except socket.error as e:
         if debug: print("{} - Socket error {}".format(get_time(), e))
-        exit()
+        sys.exit()
     finally:
         if debug: print("{} - Successfully bound to socket, PORT:{}".format(get_time(), PORT))
 
@@ -152,6 +173,7 @@ if __name__ == '__main__':
         client_list.append(y)
         if "GUI" in uuid: y.is_gui = True
         socket_write(c, "REG_COMPLETE", uuid)
+
         if debug: print("{} - Client with UUID: {}, connected_to_server successfully".format(get_time(), uuid))
 
         start_new_thread(socket_read, (c,))
