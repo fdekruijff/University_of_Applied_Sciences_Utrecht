@@ -1,29 +1,26 @@
 """
-    Project: Mini project TICT-V1PROG-15
-    School: Hogeschool Utrecht B HBO-ICT
+    Programming
+    University of Applied Sciences Utrecht
+    TICT-V1PROG-15 Project
 """
 
 import datetime
 import math
-import operator
-import os
-import tkinter as tk
-import xml.etree.ElementTree as Et
-from tkinter import *
-from win32api import GetSystemMetrics
-
 import googlemaps
-import requests
 import twilio.rest
 
+import tkinter as tk
+import xml.etree.ElementTree as Et
+
+from tkinter import *
+from win32api import GetSystemMetrics
 from classes.CardMachine import CardMachine
-from classes.GenerateMechanic import GenerateMechanic
 from classes.Mechanic import Mechanic
 from classes.Notification import Notification
+from classes.PopulateDataLists import PopulateDataLists
 from pages.CardMachineOverviewPage import CardMachineOverviewPage
 from pages.MechanicOverviewPage import MechanicOverviewPage
 from pages.NotificationPage import NotificationPage
-from pages.RegisterNewMechanicPage import RegisterNewMechanicPage
 from pages.StartPage import StartPage
 
 
@@ -45,9 +42,8 @@ class NSDefectOverview(tk.Tk):
         self.width = 800
         self.height = 533
 
-        self.cardMachineList = []
-        self.mechanicList = []
-        self.notificationList = []
+        self.mechanicFile = "mechanics.xml"
+        self.notificationFile = "notifications.xml"
 
         self.notification_information = []
         self.popup = None
@@ -57,18 +53,19 @@ class NSDefectOverview(tk.Tk):
         self.google_maps_api = googlemaps.Client(key='AIzaSyB3sE6Ekts-GoPlZ8vJ8P8i0UL1rVFnnPI')
         self.twilio_api = twilio.rest.Client("ACdf5a5cafa61b2fa3c98615176e80a6ac", "514dcdd9428ece0db966ec011a93a084")
 
-        self.geometry("{}x{}+{}+{}".format(self.width, self.height,
-                                           int(math.floor(GetSystemMetrics(0)) / 2 - self.width / 2),
-                                           int(math.floor(GetSystemMetrics(1)) / 2 - self.height / 2) - 100)
-                      )
+        self.cardMachineList = PopulateDataLists.populate_card_machine_list(self.ns_api_username, self.ns_api_password)
+        self.mechanicList = PopulateDataLists.populate_mechanic_list(self.mechanicFile)
+        self.notificationList = PopulateDataLists.populate_notification_list(self.notificationFile)
+
+        self.geometry("{}x{}+{}+{}".format(
+            self.width,
+            self.height,
+            int(math.floor(GetSystemMetrics(0)) / 2 - self.width / 2),
+            int(math.floor(GetSystemMetrics(1)) / 2 - self.height / 2) - 100)
+        )
 
         self.title("NS Defect Overview")
         self.resizable(0, 0)
-
-        # Initialise data
-        self.populate_card_machine_list()
-        self.populate_mechanic_list()
-        self.read_notifications()
 
         # Initialise TkInter container settings.
         container.pack(side="top", fill="both", expand=True)
@@ -77,7 +74,6 @@ class NSDefectOverview(tk.Tk):
 
         for page in (StartPage,
                      MechanicOverviewPage,
-                     RegisterNewMechanicPage,
                      CardMachineOverviewPage,
                      NotificationPage):
             page_name = page.__name__
@@ -95,128 +91,14 @@ class NSDefectOverview(tk.Tk):
             frame.update_notification_list()
         frame.tkraise()
 
-    def populate_card_machine_list(self):
-        response = None
-        """ Populates the cardMachineList with generated Machines based on station """
-        try:
-            response = requests.get(url="http://webservices.ns.nl/ns-api-stations-v2",
-                                    auth=(self.ns_api_username, self.ns_api_password)
-                                    )
-        except requests.exceptions.ConnectionError:
-            exit("Failed to establish connection with NS API, please try again.")
-
-        for element in Et.fromstring(response.text):
-            is_in_netherlands = False
-            station_name = ""
-            latitude = ""
-            longitude = ""
-            for meta in element:
-                if meta.tag == "Namen":
-                    for name in meta:
-                        if name.tag == "Lang":
-                            station_name = name.text
-
-                if meta.text == "NL":
-                    is_in_netherlands = True
-
-                if meta.tag == "Lat":
-                    latitude = meta.text
-                if meta.tag == "Lon":
-                    longitude = meta.text
-
-            # We only want stations based in the Netherlands
-            if is_in_netherlands:
-                self.cardMachineList.append(CardMachine(station_name, longitude, latitude))
-
-    def read_notifications(self):
-        if os.path.isfile("notification.xml"):
-            if os.stat("notification.xml").st_size == 0:
-                notifications = Et.Element("notifications")
-                tree = Et.ElementTree(notifications)
-                tree.write('notification.xml')
-            else:
-                tree = Et.parse('notification.xml')
-                for x in tree.getroot():
-                    time = message = ""
-                    for meta in x:
-                        if meta.tag == 'time':
-                            time = meta.text
-                        if meta.tag == 'message':
-                            message = meta.text
-                    self.notificationList.append(Notification(datetime.datetime.strptime(
-                        time, "%d-%m-%Y %H:%M"), message))
-                self.notificationList.sort(key=operator.attrgetter('time'))
-                # self.notificationList.reverse()
-        else:
-            open('notification.xml', 'w')
-            self.read_notifications()
-
     def write_notification(self, notification: Notification):
-        tree = Et.parse('notification.xml')
+        tree = Et.parse(self.notificationFile)
         root = tree.getroot()
         notifications = Et.SubElement(Et.Element("notifications"), "notification")
         Et.SubElement(notifications, "time").text = notification.time
         Et.SubElement(notifications, "message").text = notification.message
         root.append(notifications)
-        tree.write("notification.xml")
-
-    def populate_mechanic_list(self):
-        if os.path.isfile("mechanic.xml"):
-            if os.stat("mechanic.xml").st_size == 0:
-                for province in GenerateMechanic.regions:
-                    for amount in range(5):
-                        mechanic = GenerateMechanic.generate_mechanic(province)
-                        self.mechanicList.append(mechanic)
-
-                        mechanics = Et.Element("mechanics")
-                        for x in self.mechanicList:
-                            Et.SubElement(Et.SubElement(mechanics, "mechanic"), "name").text = str(x.name)
-                            Et.SubElement(Et.SubElement(mechanics, "mechanic"), "gender").text = str(x.gender)
-                            Et.SubElement(Et.SubElement(mechanics, "mechanic"), "age").text = str(x.age)
-                            Et.SubElement(Et.SubElement(mechanics, "mechanic"), "latitude").text = str(x.latitude)
-                            Et.SubElement(Et.SubElement(mechanics, "mechanic"), "longitude").text = str(x.longitude)
-                            Et.SubElement(Et.SubElement(mechanics, "mechanic"), "region").text = str(x.region)
-                            Et.SubElement(Et.SubElement(mechanics, "mechanic"), "schedule").text = str(x.schedule)
-                            Et.SubElement(Et.SubElement(mechanics, "mechanic"), "availability").text = str(
-                                x.availability)
-                            Et.SubElement(Et.SubElement(mechanics, "mechanic"), "shift").text = str(x.shift)
-                            Et.SubElement(Et.SubElement(mechanics, "mechanic"), "phone").text = str(x.phone_number)
-                        tree = Et.ElementTree(mechanics)
-                        tree.write('mechanic.xml')
-            else:
-                tree = Et.parse('mechanic.xml')
-                for x in tree.getroot():
-                    name = gender = age = latitude = longitude = region = schedule = availability = shift = phone = ""
-                    for meta in x:
-                        if meta.tag == "name":
-                            name = meta.text
-                        if meta.tag == "gender":
-                            gender = meta.text
-                        if meta.tag == "age":
-                            age = int(meta.text)
-                        if meta.tag == "latitude":
-                            latitude = float(meta.text)
-                        if meta.tag == "longitude":
-                            longitude = float(meta.text)
-                        if meta.tag == "region":
-                            region = meta.text
-                        if meta.tag == "schedule":
-                            schedule = meta.text
-                        if meta.tag == "availability":
-                            availability = meta.text
-                        if meta.tag == "shift":
-                            shift = meta.text
-                        if meta.tag == "phone":
-                            phone = meta.text
-
-                    self.mechanicList.append(
-                        Mechanic(name, gender, age, latitude, longitude, region, schedule, availability, shift, phone)
-                    )
-
-            self.mechanicList.sort(key=operator.attrgetter('name'))
-        else:
-            open('mechanic.xml', 'w')
-            self.populate_mechanic_list()
+        tree.write(self.notificationFile)
 
     @staticmethod
     def haversine_formula(latitude1, longitude1, latitude2, longitude2):
@@ -301,7 +183,7 @@ class NSDefectOverview(tk.Tk):
 
     def new_notification(self):
         self.send_sms(self.notification_information[0], self.notification_information[1].phone_number)
-        self.notification_information[1].availability = "Occupied"
+        self.notification_information[1].set_attribute("availability", "Occupied", self.mechanicFile)
         self.notificationList.append(Notification(datetime.datetime.now(), self.notification_information[0]))
         self.popup.destroy()
         self.write_notification(self.notificationList[-1])
@@ -358,6 +240,7 @@ class NSDefectOverview(tk.Tk):
                 {"text": "Cancel", "command": "self.popup.destroy"}
             ]
 
+            self.notification_information[1] = next_mechanic[1]
             self.notification_information[0] = \
                 "{mechanic_name} was dispatched to {station_name}, travel time is {travel_time} minutes.".format(
                     mechanic_name=next_mechanic[1].name,

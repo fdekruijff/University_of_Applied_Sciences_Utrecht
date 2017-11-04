@@ -1,3 +1,10 @@
+"""
+    Programming
+    University of Applied Sciences Utrecht
+    TICT-V1PROG-15 Project
+"""
+
+
 class Notification:
     def __init__(self, time, message):
         self.time = time.strftime("%d-%m-%Y %H:%M")

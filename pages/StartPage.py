@@ -1,6 +1,7 @@
 """
-    Project: Mini project TICT-V1PROG-15
-    School: Hogeschool Utrecht B HBO-ICT
+    Programming
+    University of Applied Sciences Utrecht
+    TICT-V1PROG-15 Project
 """
 
 import tkinter as tk
@@ -22,11 +23,25 @@ class StartPage(tk.Frame):
         self.backgroundContainer.configure(width=1000)
         self.backgroundContainer.configure(height=480)
         self.button_information = [
-            ["Notifications", "NotificationPage", 0.0],
-            ["Overview\nCard Machines", "CardMachineOverviewPage", 0.2],
-            ["Overview\nMechanics", "MechanicOverviewPage", 0.6625],
-            ["Register\nNew Mechanic", "RegisterNewMechanicPage", 0.8625]
+            ["Notifications", "NotificationPage"],
+            ["Overview\nCard Machines", "CardMachineOverviewPage"],
+            ["Overview\nMechanics", "MechanicOverviewPage"]
         ]
+
+        self.informationLabel = Label(self.backgroundContainer)
+        self.informationLabel.place(relx=0, rely=0.9, relwidth=1, relheight=0.1)
+        self.informationLabel.configure(text="Floris de Kruijff"
+                                             "     -     "
+                                             "Bryan Campagne"
+                                             "     -     "
+                                             "Rik van Velzen"
+                                             "\n\n"
+                                             "TICT-V1PROG-15")
+        self.informationLabel.configure(
+                background=controller.buttonBackgroundColor,
+                foreground=controller.buttonForegroundColor,
+                relief=controller.buttonRelief
+            )
 
         # Declaration of background Label
         self.backgroundImageContainer = Label(self.backgroundContainer, image=self.backgroundImage)
@@ -36,11 +51,12 @@ class StartPage(tk.Frame):
             height=self.backgroundImage.height(), width=self.backgroundImage.width())
 
         # Declaring buttons based on button_information list
+        rel_x = 0.0
         for button in self.button_information:
             self.notificationButton = Button(self.backgroundContainer)
-            self.notificationButton.place(relx=button[2], rely=0,
-                                          height=controller.buttonHeight,
-                                          width=controller.buttonWidth)
+            self.notificationButton.place(relx=rel_x, rely=0,
+                                          relheight=0.10,
+                                          relwidth=0.25)
             self.notificationButton.configure(text=button[0])
             self.notificationButton.configure(
                 command=functools.partial(controller.show_frame, button[1])
@@ -50,3 +66,5 @@ class StartPage(tk.Frame):
                 foreground=controller.buttonForegroundColor,
                 relief=controller.buttonRelief
             )
+
+            rel_x += 0.375
