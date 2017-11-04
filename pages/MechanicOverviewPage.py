@@ -1,6 +1,7 @@
 """
-    Project: Mini project TICT-V1PROG-15
-    School: Hogeschool Utrecht B HBO-ICT
+    Programming
+    University of Applied Sciences Utrecht
+    TICT-V1PROG-15 Project
 """
 
 import functools
@@ -110,7 +111,7 @@ class MechanicOverviewPage(tk.Frame):
             self.tempLabel.configure(text=label)
             self.tempLabel.configure(background="#ebedeb")
             self.tempLabel.configure(font="Helvetica 12 bold")
-            rely += 0.575
+            rely += 0.5
 
         rely = 0.15
         for label in range(len(self.informationLabels)):
@@ -125,4 +126,4 @@ class MechanicOverviewPage(tk.Frame):
             self.tempLabel.configure(anchor='w')
             self.tempLabel.configure(background="#ebedeb")
             self.tempLabel.configure(text=mechanic_info[label])
-            rely += 0.085
+            rely += 0.065

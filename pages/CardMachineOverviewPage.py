@@ -1,6 +1,7 @@
 """
-    Project: Mini project TICT-V1PROG-15
-    School: Hogeschool Utrecht B HBO-ICT
+    Programming
+    University of Applied Sciences Utrecht
+    TICT-V1PROG-15 Project
 """
 
 import functools
@@ -109,7 +110,7 @@ class CardMachineOverviewPage(tk.Frame):
             self.tempLabel.configure(text=label)
             self.tempLabel.configure(background="#ebedeb")
             self.tempLabel.configure(font="Helvetica 12 bold")
-            rely += 0.575
+            rely += 0.5
 
         rely = 0.15
         for label in range(len(self.informationLabels)):
@@ -155,7 +156,7 @@ class CardMachineOverviewPage(tk.Frame):
                     relief=self.controller.buttonRelief
                 )
                 self.tempLabel.configure(text=" Calculate Travel Time ")
-            rely += 0.085
+            rely += 0.065
 
     def get_machine_specifics(self, x):
         station_input = x.widget.get(x.widget.curselection()[0])
