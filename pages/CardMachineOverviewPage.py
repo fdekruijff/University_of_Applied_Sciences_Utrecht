@@ -98,8 +98,8 @@ class CardMachineOverviewPage(tk.Frame):
             "Traveling to {} by car will be {} kilometer over {} minutes.".format(
                 card_machine.station_name, travel_advice[0], travel_advice[1]
             ),
-            [{"text": "  Done  ", "command": "self.popup.destroy"}],
-            450, 100, "#fcc63f"
+            450, 100, "#fcc63f",
+            [{"text": "  Done  ", "command": "self.popup.destroy"}], None
         )
 
     def update_machine_specifics_labels(self, card_machine_info, card_machine, mechanic_info):
@@ -107,12 +107,10 @@ class CardMachineOverviewPage(tk.Frame):
         for label in self.informationHeaders:
             self.tempLabel = Label(self.informationContainer)
             self.tempLabel.place(relx=0, rely=rely, relwidth=1, relheight=0.15)
-            self.tempLabel.configure(text=label)
-            self.tempLabel.configure(background="#ebedeb")
-            self.tempLabel.configure(font="Helvetica 12 bold")
+            self.tempLabel.configure(font="Helvetica 12 bold", text=label, background="#ebedeb")
             rely += 0.5
 
-        rely = 0.15
+        rely = 0.2
         for label in range(len(self.informationLabels)):
             if label == 4:
                 rely += 0.22
@@ -120,43 +118,35 @@ class CardMachineOverviewPage(tk.Frame):
             if card_machine_info[label] != "":
                 self.tempLabel = Label(self.informationContainer)
                 self.tempLabel.place(relx=0.05, rely=rely, relwidth=0.425)
-                self.tempLabel.configure(background="#ebedeb")
-                self.tempLabel.configure(text=self.informationLabels[label])
-                self.tempLabel.configure(anchor='w')
+                self.tempLabel.configure(anchor='w', background="#ebedeb", text=self.informationLabels[label])
 
                 self.tempLabel = Label(self.informationContainer)
                 self.tempLabel.place(relx=0.5, rely=rely, relwidth=0.455)
-                self.tempLabel.configure(anchor='w')
-                self.tempLabel.configure(background="#ebedeb")
-                self.tempLabel.configure(text=card_machine_info[label])
+                self.tempLabel.configure(anchor='w', background="#ebedeb", text=card_machine_info[label])
 
             else:
                 self.tempLabel = Button(self.informationContainer)
                 self.tempLabel.place(relx=0.05, rely=rely, relwidth=0.425)
-                self.tempLabel.configure(anchor='w')
                 self.tempLabel.configure(
-                    command=functools.partial(self.controller.dispatch_mechanic, card_machine, mechanic_info[1])
-                )
-                self.tempLabel.configure(
+                    command=functools.partial(self.controller.dispatch_mechanic, card_machine, mechanic_info[1]),
                     background=self.controller.buttonBackgroundColor,
                     foreground=self.controller.buttonForegroundColor,
-                    relief=self.controller.buttonRelief
+                    relief=self.controller.buttonRelief,
+                    text=" Dispatch Mechanic ",
+                    anchor='w'
                 )
-                self.tempLabel.configure(text=" Dispatch Mechanic ")
 
                 self.tempLabel = Button(self.informationContainer)
                 self.tempLabel.place(relx=0.5, rely=rely, relwidth=0.425)
-                self.tempLabel.configure(anchor='w')
                 self.tempLabel.configure(
-                    command=functools.partial(self.calculate_distance_time_popup, card_machine, mechanic_info)
-                )
-                self.tempLabel.configure(
+                    command=functools.partial(self.calculate_distance_time_popup, card_machine, mechanic_info),
                     background=self.controller.buttonBackgroundColor,
                     foreground=self.controller.buttonForegroundColor,
-                    relief=self.controller.buttonRelief
+                    relief=self.controller.buttonRelief,
+                    text=" Calculate Travel Time ",
+                    anchor='w'
                 )
-                self.tempLabel.configure(text=" Calculate Travel Time ")
-            rely += 0.065
+            rely += 0.05
 
     def get_machine_specifics(self, x):
         station_input = x.widget.get(x.widget.curselection()[0])

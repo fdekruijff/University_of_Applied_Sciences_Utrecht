@@ -6,14 +6,14 @@
 
 import datetime
 import math
+import tkinter as tk
+import xml.etree.ElementTree as Et
+from tkinter import *
+from win32api import GetSystemMetrics
+
 import googlemaps
 import twilio.rest
 
-import tkinter as tk
-import xml.etree.ElementTree as Et
-
-from tkinter import *
-from win32api import GetSystemMetrics
 from classes.CardMachine import CardMachine
 from classes.Mechanic import Mechanic
 from classes.Notification import Notification
@@ -46,6 +46,7 @@ class NSDefectOverview(tk.Tk):
         self.notificationFile = "notifications.xml"
 
         self.notification_information = []
+        self.update_fields_information = []
         self.popup = None
 
         self.ns_api_username = "floris.dekruijff@student.hu.nl"
@@ -142,11 +143,48 @@ class NSDefectOverview(tk.Tk):
             @:return: distance, travel time
         """
         result = self.google_maps_api.distance_matrix((latitude1, longitude1), (latitude2, longitude2))
-        return (result['rows'][0]['elements'][0]['distance']['text'].split(' ')[0],
-                result['rows'][0]['elements'][0]['duration']['text'].split(' ')[0])
+        try:
+            return (result['rows'][0]['elements'][0]['distance']['text'].split(' ')[0],
+                    result['rows'][0]['elements'][0]['duration']['text'].split(' ')[0])
+        except KeyError:
+            self.get_distance_travel_time(latitude1, longitude1, latitude2, longitude2)
 
-    def new_popup(self, title: str, message: str, buttons: list, popup_width: int, popup_height: int,
-                  background_color: str):
+    def update_fields(self):
+        field = ''
+        value = ''
+        count = 0
+        for entry in self.update_fields_information[1]:
+            if count == 0:
+                try:
+                    if "Field Value" not in entry.get():
+                        field = entry.get()
+                    else:
+                        return
+                except tk.TclError:
+                    return
+            else:
+                value = entry.get()
+            count += 1
+        if self.update_fields_information[0].set_attribute(field, value, self.mechanicFile):
+            self.new_notification(
+                mechanic=self.update_fields_information[0],
+                message="{} updated to {} for {}".format(
+                    field,
+                    value,
+                    self.update_fields_information[0].name
+                ), sms=False
+            )
+        else:
+            self.new_notification(
+                mechanic=self.update_fields_information[0],
+                message="Tried to update {} but input was incorrect".format(
+                    self.update_fields_information[0].name
+                ), sms=False
+            )
+        self.popup.destroy()
+
+    def new_popup(self, title: str, message: str, popup_width: int, popup_height: int,
+                  background_color: str, buttons: list = None, fields: list = None):
         """
             This function creates a pop-up based on the passed parameters. It also generates buttons based on the passed
             list.
@@ -160,28 +198,58 @@ class NSDefectOverview(tk.Tk):
             int(self.winfo_y() + (self.height / 2 - popup_height / 2))
         ))
         self.popup.configure(background=background_color)
-        label = tk.Label(self.popup, text=message, background=background_color)
+        label = tk.Label(self.popup, text=message, background=background_color, wraplength=400)
         label.pack(side="top", fill="x", pady=20, padx=20)
 
-        if len(buttons) == 1:
-            relative_x = 0.5
-        else:
-            relative_x = 1 / len(buttons) - 0.15
+        if buttons is not None:
+            if len(buttons) == 1:
+                relative_x = 0.5
+            else:
+                relative_x = 1 / len(buttons) - 0.15
 
-        rel_width = 80 / popup_width
-        rel_height = 35 / popup_height
-        for x in buttons:
-            b = tk.Button(self.popup,
-                          background=self.buttonBackgroundColor,
-                          foreground=self.buttonForegroundColor,
-                          relief=self.buttonRelief,
-                          text=x['text'],
-                          command=eval(x['command']))
-            b.place(relwidth=rel_width, relheight=rel_height, relx=relative_x - (rel_width / 2), rely=0.45)
-            relative_x += 0.3
+            rel_width = 80 / popup_width
+            rel_height = 35 / popup_height
+
+            if fields is not None:
+                relative_y = 0.65
+                rel_width = 120 / popup_width
+            else:
+                relative_y = 0.45
+
+            for x in buttons:
+                b = tk.Button(self.popup,
+                              background=self.buttonBackgroundColor,
+                              foreground=self.buttonForegroundColor,
+                              relief=self.buttonRelief,
+                              text=x['text'],
+                              command=eval(x['command']))
+                b.place(relwidth=rel_width, relheight=rel_height, relx=relative_x - (rel_width / 2), rely=relative_y)
+                relative_x += 0.3
+        if fields is not None:
+            field_list = []
+            if len(fields) == 1:
+                relative_x = 0.5
+            else:
+                relative_x = 1 / len(fields) - 0.15
+
+            rel_width = 120 / popup_width
+            rel_height = 35 / popup_height
+            for x in fields:
+                b = tk.Entry(self.popup, relief=self.buttonRelief)
+                b.insert(0, x['text'])
+                b.configure(background="white", foreground="grey", insertbackground="black", justify='center')
+                b.place(relwidth=rel_width, relheight=rel_height, relx=relative_x - (rel_width / 2), rely=0.45)
+                field_list.append(b)
+                relative_x += 0.3
+            self.update_fields_information.append(field_list)
         self.popup.mainloop()
 
-    def new_notification(self):
+    def new_notification(self, mechanic: Mechanic, message, sms=False):
+        if sms: self.send_sms(self.message, mechanic.phone_number)
+        self.notificationList.append(Notification(datetime.datetime.now(), message))
+        self.write_notification(self.notificationList[-1])
+
+    def new_notification_static(self):
         self.send_sms(self.notification_information[0], self.notification_information[1].phone_number)
         self.notification_information[1].set_attribute("availability", "Occupied", self.mechanicFile)
         self.notificationList.append(Notification(datetime.datetime.now(), self.notification_information[0]))
@@ -221,8 +289,8 @@ class NSDefectOverview(tk.Tk):
                 station_name=card_machine.station_name
             )
 
-            buttons = [{"text": "Ok", "command": "self.new_notification"}]
-            self.new_notification()
+            buttons = [{"text": "Ok", "command": "self.new_notification_static"}]
+            self.new_notification_static()
 
         elif card_machine.defect == "Defect" or card_machine.defect == "Operational" and mechanic.availability == "Occupied":
             title = "Are you sure?"
@@ -236,7 +304,7 @@ class NSDefectOverview(tk.Tk):
             )
 
             buttons = [
-                {"text": "Yes, I'm sure", "command": "self.new_notification"},
+                {"text": "Yes, I'm sure", "command": "self.new_notification_static"},
                 {"text": "Cancel", "command": "self.popup.destroy"}
             ]
 
@@ -259,11 +327,11 @@ class NSDefectOverview(tk.Tk):
             )
 
             buttons = [
-                {"text": "Yes, I'm sure", "command": "self.new_notification"},
+                {"text": "Yes, I'm sure", "command": "self.new_notification_static"},
                 {"text": "Cancel", "command": "self.popup.destroy"}
             ]
 
-        self.new_popup(title, message, buttons, 450, 125, "#fcc63f")
+        self.new_popup(title, message, 450, 125, "#fcc63f", buttons, None)
 
     def send_sms(self, message, number):
         try:

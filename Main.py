@@ -1,6 +1,7 @@
 """
-    Project: Mini project TICT-V1PROG-15
-    School: Hogeschool Utrecht B HBO-ICT
+    Programming
+    University of Applied Sciences Utrecht
+    TICT-V1PROG-15 Project
 """
 
 from NSDefectOverview import NSDefectOverview
