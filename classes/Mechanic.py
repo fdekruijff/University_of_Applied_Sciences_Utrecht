@@ -3,8 +3,10 @@
     University of Applied Sciences Utrecht
     TICT-V1PROG-15 Project
 """
-
+import sqlite3
 import xml.etree.ElementTree as Et
+conn = sqlite3.connect('nsdefect.db')
+c = conn.cursor()
 try:
     from classes.GenerateMechanic import GenerateMechanic
 except ImportError:
@@ -42,6 +44,8 @@ class Mechanic:
 
                     if meta.tag.lower() == attribute.lower() and found:
                         meta.text = value
+                        c.execute("Update mechanics SET '{}'='{}' WHERE name = '{}'".format(attribute, value, self.name))
+                        conn.commit()
 
             tree.write(mechanic_xml_file)
             return True
@@ -53,6 +57,8 @@ class Mechanic:
             for meta in x:
                 if meta.text.lower() == self.name.lower():
                     tree.getroot().remove(x)
+                    c.execute("DELETE FROM mechanics WHERE name = '{}'".format(self.name))
+                    conn.commit()
         tree.write(mechanic_xml_file)
 
     @staticmethod

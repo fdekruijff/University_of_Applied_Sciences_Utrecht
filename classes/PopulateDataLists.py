@@ -8,13 +8,37 @@ import requests
 import os
 import operator
 import datetime
+import sqlite3
 from classes.CardMachine import CardMachine
 from classes.Mechanic import Mechanic
 from classes.Notification import Notification
 from classes.GenerateMechanic import GenerateMechanic
 import xml.etree.ElementTree as Et
 
+conn = sqlite3.connect('nsdefect.db')
+c = conn.cursor()
 
+def create_table():
+    c.execute('CREATE TABLE IF NOT EXISTS mechanics(name TEXT, gender TEXT, age TEXT, latitude TEXT, longitude TEXT, region TEXT, schedule TEXT, availability TEXT, shift TEXT, phone TEXT)')
+
+
+def data_entry_mechanics(name, gender, age, latitude, longitude, region, schedule, availability, shift, phone):
+    sname = name.replace('"','')
+    sgender = gender.replace('"','')
+    sregion = region.replace('"','')
+    savailability = availability.replace('"','')
+    sshift = shift.replace('"','')
+    sphone = phone.replace('"','')
+    c.execute("INSERT INTO mechanics VALUES('{}','{}','{}','{}','{}','{}','{}','{}','{}','{}')".format(sname, sgender, age, latitude, longitude, sregion, schedule, savailability, sshift, sphone))
+    conn.commit()
+
+def read_all():
+    c.execute("SELECT * FROM mechanics")
+    data = c.fetchall()
+    print(data)
+    return data
+
+create_table()
 class PopulateDataLists:
     @staticmethod
     def populate_card_machine_list(ns_api_username: str, ns_api_password: str) -> list:
@@ -51,6 +75,7 @@ class PopulateDataLists:
 
     @staticmethod
     def populate_mechanic_list(mechanic_file):
+        create_table
         return_list = []
         if os.path.isfile(mechanic_file):
             if os.stat(mechanic_file).st_size == 0:
@@ -60,6 +85,7 @@ class PopulateDataLists:
                         mechanic = GenerateMechanic.generate_mechanic(province)
                         return_list.append(mechanic)
 
+                        data_entry_mechanics(mechanic.name, mechanic.gender, mechanic.age, mechanic.latitude, mechanic.longitude, mechanic.region, mechanic.schedule, mechanic.availability, mechanic.shift, mechanic.phone_number)
                         mec = Et.SubElement(root, "mechanic")
                         Et.SubElement(mec, "name").text = str(mechanic.name)
                         Et.SubElement(mec, "gender").text = str(mechanic.gender)
@@ -73,6 +99,8 @@ class PopulateDataLists:
                         Et.SubElement(mec, "phone").text = str(mechanic.phone_number)
                 tree = Et.ElementTree(root)
                 tree.write(mechanic_file)
+                c.close()
+                conn.close()
             else:
                 tree = Et.parse(mechanic_file)
                 for x in tree.getroot():
@@ -98,7 +126,6 @@ class PopulateDataLists:
                             shift = meta.text
                         if meta.tag == "phone":
                             phone = meta.text
-
                     return_list.append(
                         Mechanic(name, gender, age, latitude, longitude, region, schedule, availability, shift, phone)
                     )
