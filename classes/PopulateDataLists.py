@@ -75,7 +75,7 @@ class PopulateDataLists:
 
     @staticmethod
     def populate_mechanic_list(mechanic_file):
-        create_table
+        create_table()
         return_list = []
         if os.path.isfile(mechanic_file):
             if os.stat(mechanic_file).st_size == 0:
