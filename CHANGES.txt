@@ -1,0 +1,66 @@
+08-11-2017 - v1.1
+    - General update to all files
+    - Fixed SQLite database lock bugs
+    - Fixed small bugs
+    - Update formatting to all files
+    - Added YAML configuration file
+
+05-11-2017 - v1.0
+    - General update to all files
+    - First fully working version pushed to GitHub
+    - SQLite functionality implemented parallel to XML
+    - Fixed circular importing errors
+
+04-11-2017 - v0.3
+    - General update to all files
+    - Added Docstring and Doctests to functions
+    - Added try except statements where necessary
+
+12-10-2107 - v0.2
+    - General update to all files
+    - Moved files to directories, classes / images / pages
+    - General formatting update to all files
+
+11-10-2017 - v0.1
+    - General update to all files
+    - Updated Classes for Mechanic, CardMachine and Notification
+    - GenerateMechanic functionality implemented
+    - Google API implemented
+    - Twilio API implemented
+
+
+11-10-2017 - v0.1
+    - General update to all files
+    - Updated Classes for Mechanic, CardMachine and Notification
+    - GenerateMechanic functionality implemented
+    - Google API implemented
+    - Twilio API implemented
+
+03-10-2017 - v0.05
+    - General updates to all files
+    - XML implemented
+    - Haversine formula implemented
+
+
+29-09-2017 - v0.04
+    - General updates to all files
+    - NS API implemented
+
+27-09-2017 - v0.03
+    - General updates to all files
+    - Added CardMachine.py
+    - Added NSDefectOverview.py
+    - Added CardMachineOverviewPage.py
+    - Added MechanicOverviewPage.py
+    - Added NotificationPage.py
+    - Added RegisterNewMechanicPage.py
+    - Renamed StartPagina.py to StartPage.py
+
+26-09-2017 - v0.02
+    - Added images
+    - Added Main.py
+    - Added StartPagina.py
+
+25-09-2017 - v0.01
+    - GitHub repository created
+    - Start of project
