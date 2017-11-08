@@ -1,37 +1,94 @@
-## Welcome to GitHub Pages
+# TICT-V1PROG-15 Miniproject
 
-You can use the [editor on GitHub](https://github.com/fdekruijff/TICT-V1PROG-15-Miniproject/edit/master/README.md) to maintain and preview the content for your website in Markdown files.
+This is the final project for the course TICT-V1PROG-15 for the University of Applied Sciences in Utrecht. The goal of this project is to make a GUI to display API data based on Station data and Mechanics.
 
-Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
+## Getting Started
 
-### Markdown
+The instructions will get you set up to run this project yourself.
 
-Markdown is a lightweight and easy-to-use syntax for styling your writing. It includes conventions for
+### Prerequisites
 
-```markdown
-Syntax highlighted code block
+The following python modules need to be imported
+* ```python -m pip install pypiwin32```
+* ```python -m pip install googlemaps```
+* ```python -m pip install twilio```
+* ```python -m pip install pyyaml```
 
-# Header 1
-## Header 2
-### Header 3
+### Installing Software
 
-- Bulleted
-- List
+To run the program please follow these steps:
 
-1. Numbered
-2. List
+1. Clone the GitHub repository
 
-**Bold** and _Italic_ and `Code` text
-
-[Link](url) and ![Image](src)
+```
+git clone https://github.com/fdekruijff/TICT-V1PROG-15-Miniproject.git NSDefectOverview
 ```
 
-For more details see [GitHub Flavored Markdown](https://guides.github.com/features/mastering-markdown/).
+2. Change directory
 
-### Jekyll Themes
+```
+cd ./NSDefectOverview/
+```
 
-Your Pages site will use the layout and styles from the Jekyll theme you have selected in your [repository settings](https://github.com/fdekruijff/TICT-V1PROG-15-Miniproject/settings). The name of this theme is saved in the Jekyll `_config.yml` configuration file.
 
-### Support or Contact
+3. Run Main.py
+```
+C:\path\to\python3.exe Main.py
+```
 
-Having trouble with Pages? Check out our [documentation](https://help.github.com/categories/github-pages-basics/) or [contact support](https://github.com/contact) and we’ll help you sort it out.
+## You should see this
+
+If everything worked you should see the following window appear. Congratulations everything is working now.
+
+![program homescreen](https://image.prntscr.com/image/akI1x-zIRRevKVh0IZQfvQ.png)
+
+##  Program Structure
+```
+/NSDefectOverview
+    |-- Main.py
+    |-- NSDefectOverview.py
+    |__ /classes
+         |-- __init__.py
+         |-- CardMachine.py               
+         |-- GenerateMechanic.py               
+         |-- Mechanic.py               
+         |-- Notification.py               
+         |-- PopulateDataLists.py               
+         |-- RandomCardMachineDefect.py               
+     |__ /images
+         |-- ns_logo_1.png
+         |-- ns_logo_1_25.png
+         |-- ns_logo_1_50.png  
+     |__ /pages
+         |-- __init__.py
+         |-- CardMachineOverviewPage.py  
+         |-- MechanicsOverviewPage.py  
+         |-- NotificationPage.py  
+         |-- StartPage.py  
+    |-- .gitignore
+    |-- README.md
+    |-- LICENCE.txt
+    |-- CHANGES.txt
+```
+## Built With
+
+* [PyCharm](https://www.jetbrains.com/pycharm/) - Python IDE for Professional Developers by JetBrains
+* [NS API](https://www.ns.nl/reisinformatie/ns-api) - API to get Dutch train station information
+* [Google API](https://developers.google.com/maps/) - Google Maps API to get distance and travel time between coordinates
+* [Twilio API](https://www.twilio.com/) - Platform to send text messages
+
+## Authors
+
+* **Floris de Kruijff** - *TkInter logic* - [fdekruijff](https://github.com/fdekruijff)
+* **Bryan Campagne** - *XML / SQLite logic* - [Joepieler](https://github.com/Joepieler)
+* **Rik van Velzen** - *API logic* - [Rikvanvelzen](https://github.com/Rikvanvelzen)
+
+See also the list of [contributors](https://github.com/fdekruijff/TICT-V1CSN-15-Miniproject/contributors) who participated in this project.
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE.txt](LICENSE.txt) file for details
+
+## Acknowledgments
+
+* README.md [template](https://gist.githubusercontent.com/PurpleBooth/109311bb0361f32d87a2/raw/824da51d0763e6855c338cc8107b2ff890e7dd43/README-Template.md)

@@ -7,40 +7,17 @@
 import datetime
 import operator
 import os
-import requests
 import sqlite3
-
 import xml.etree.ElementTree as Et
 
-from classes.CardMachine import CardMachine
-from classes.GenerateMechanic import GenerateMechanic
-from classes.Mechanic import Mechanic
-from classes.Notification import Notification
+import requests
 
-conn = sqlite3.connect('nsdefect.db')
-c = conn.cursor()
-
-def create_table():
-    c.execute('CREATE TABLE IF NOT EXISTS mechanics(name TEXT, gender TEXT, age TEXT, latitude TEXT, longitude TEXT, region TEXT, schedule TEXT, availability TEXT, shift TEXT, phone TEXT)')
+import classes.CardMachine as CardMachine
+import classes.GenerateMechanic as GenerateMechanic
+import classes.Mechanic as Mechanic
+import classes.Notification as Notification
 
 
-def data_entry_mechanics(name, gender, age, latitude, longitude, region, schedule, availability, shift, phone):
-    sname = name.replace('"','')
-    sgender = gender.replace('"','')
-    sregion = region.replace('"','')
-    savailability = availability.replace('"','')
-    sshift = shift.replace('"','')
-    sphone = phone.replace('"','')
-    c.execute("INSERT INTO mechanics VALUES('{}','{}','{}','{}','{}','{}','{}','{}','{}','{}')".format(sname, sgender, age, latitude, longitude, sregion, schedule, savailability, sshift, sphone))
-    conn.commit()
-
-def read_all():
-    c.execute("SELECT * FROM mechanics")
-    data = c.fetchall()
-    print(data)
-    return data
-
-create_table()
 class PopulateDataLists:
     """
         Static class that reads XML data files to fill data lists with previous data.
@@ -54,13 +31,12 @@ class PopulateDataLists:
     """
 
     @staticmethod
-    def populate_card_machine_list(ns_api_username: str, ns_api_password: str) -> list:
+    def populate_card_machine_list(config: dict) -> list:
         """
             Calls out to NS API to retrieve station information. Creates CardMachine objects based
             on the station information.
 
-            :param ns_api_username: string for the NS API username
-            :param ns_api_password: string for the NS API password
+            :param config: YAML configuration file
 
             Check if the function returns a list.
             >>> type(
@@ -80,8 +56,9 @@ class PopulateDataLists:
          """
         try:
             return_list = []
-            response = requests.get(url="http://webservices.ns.nl/ns-api-stations-v2",
-                                    auth=(ns_api_username, ns_api_password))
+            response = requests.get(url=config['api']['ns']['url'],
+                                    auth=(config['api']['ns']['username'], config['api']['ns']['password'])
+                                    )
 
             # Parse the XML data and derive necessary information from it.
             for element in Et.fromstring(response.text):
@@ -102,10 +79,33 @@ class PopulateDataLists:
                         longitude = meta.text
                 # We only want train stations based in The Netherlands, if so create the CardMachine object.
                 if is_in_netherlands:
-                    return_list.append(CardMachine(station_name, longitude, latitude))
+                    return_list.append(CardMachine.CardMachine(station_name, longitude, latitude))
             return return_list
         except requests.exceptions.ConnectionError:
             exit("Failed to establish connection with NS API, please try again.")
+
+    @staticmethod
+    def create_table(c):
+        c.execute(
+            'CREATE TABLE IF NOT EXISTS mechanics('
+            'name TEXT, gender TEXT, age TEXT, latitude TEXT, '
+            'longitude TEXT, region TEXT, schedule TEXT, '
+            'availability TEXT, shift TEXT, phone TEXT)'
+        )
+
+    @staticmethod
+    def data_entry_mechanics(c, conn, name, gender, age, latitude, longitude, region, schedule, availability, shift,
+                             phone):
+        name = name.replace('"', '')
+        gender = gender.replace('"', '')
+        region = region.replace('"', '')
+        availability = availability.replace('"', '')
+        shift = shift.replace('"', '')
+        phone = phone.replace('"', '')
+        c.execute(
+            "INSERT INTO mechanics VALUES('{}','{}','{}','{}','{}','{}','{}','{}','{}','{}')".format(
+                name, gender, age, latitude, longitude, region, schedule, availability, shift, phone))
+        conn.commit()
 
     @staticmethod
     def populate_mechanic_list(mechanic_file):
@@ -132,18 +132,25 @@ class PopulateDataLists:
             ... ) > 12
             True
          """
-        create_table()
+
+        conn = sqlite3.connect('nsdefect.db')
+        c = conn.cursor()
+        PopulateDataLists.create_table(c)
+
         return_list = []
         if os.path.isfile(mechanic_file):  # Checks if file is present.
             if os.stat(mechanic_file).st_size == 0:  # Checks if file has data in it
                 root = Et.Element("mechanics")
-                for province in GenerateMechanic.regions:
+                for province in GenerateMechanic.GenerateMechanic.regions:
                     for amount in range(5):
                         # If the file was empty or not present Mechanics will be generated and written to the file.
-                        mechanic = GenerateMechanic.generate_mechanic(province)
+                        mechanic = GenerateMechanic.GenerateMechanic.generate_mechanic(province)
                         return_list.append(mechanic)
 
-                        data_entry_mechanics(mechanic.name, mechanic.gender, mechanic.age, mechanic.latitude, mechanic.longitude, mechanic.region, mechanic.schedule, mechanic.availability, mechanic.shift, mechanic.phone_number)
+                        PopulateDataLists.data_entry_mechanics(c, conn, mechanic.name, mechanic.gender, mechanic.age,
+                                                               mechanic.latitude, mechanic.longitude, mechanic.region,
+                                                               mechanic.schedule, mechanic.availability, mechanic.shift,
+                                                               mechanic.phone_number)
 
                         mec = Et.SubElement(root, "mechanic")
                         Et.SubElement(mec, "name").text = str(mechanic.name)
@@ -187,7 +194,8 @@ class PopulateDataLists:
                         if meta.tag == "phone":
                             phone = meta.text
                     return_list.append(
-                        Mechanic(name, gender, age, latitude, longitude, region, schedule, availability, shift, phone)
+                        Mechanic.Mechanic(name, gender, age, latitude, longitude, region, schedule, availability, shift,
+                                          phone)
                     )
             # Sort the Mechanic list based on the name on alphabetical order.
             return_list.sort(key=operator.attrgetter('name'))
@@ -229,7 +237,7 @@ class PopulateDataLists:
                             time = meta.text
                         if meta.tag == 'message':
                             message = meta.text
-                    return_list.append(Notification(datetime.datetime.strptime(
+                    return_list.append(Notification.Notification(datetime.datetime.strptime(
                         time, "%d-%m-%Y %H:%M"), message))
                 return_list.sort(key=operator.attrgetter('time'))
             return return_list

@@ -6,15 +6,15 @@
 
 import datetime
 import math
-import sqlite3
-import tkinter as tk
-import xml.etree.ElementTree as Et
-from tkinter import *
-from win32api import GetSystemMetrics
-
+import yaml
 import googlemaps
 import twilio.rest
 
+import tkinter as tk
+import xml.etree.ElementTree as Et
+
+from tkinter import FLAT
+from win32api import GetSystemMetrics
 from classes.CardMachine import CardMachine
 from classes.Mechanic import Mechanic
 from classes.Notification import Notification
@@ -31,40 +31,49 @@ class NSDefectOverview(tk.Tk):
         tk.Tk.__init__(self, *args, *kwargs)
         container = tk.Frame(self)
 
+        # Get YAML configuration
+        try:
+            with open("config.yml", 'r') as yml:
+                self.config = yaml.load(yml)
+        except FileNotFoundError:
+            exit("The configuration file was not found, please supply one and try again.")
+
         # Initialise variables
         self.frames = {}
 
-        self.buttonWidth = 110,
-        self.buttonHeight = 70
-        self.buttonBackgroundColor = "#212b5c"
-        self.buttonForegroundColor = "#ffffff"
-        self.buttonRelief = FLAT
+        self.buttonWidth = self.config['tkinter']['button']['width'],
+        self.buttonHeight = self.config['tkinter']['button']['height']
+        self.buttonBackgroundColor = self.config['tkinter']['button']['backgroundHex']
+        self.buttonForegroundColor = self.config['tkinter']['button']['foregroundHex']
+        self.buttonRelief = eval(self.config['tkinter']['button']['relief'])
 
         # 2:3 aspect ratio
-        self.width = 800
-        self.height = 533
+        self.width = self.config['tkinter']['window']['width']
+        self.height = self.config['tkinter']['window']['height']
 
-        self.log_message = True
+        self.log_message = self.config['tkinter']['logging']
 
-        self.mechanicFile = "mechanics.xml"
-        self.notificationFile = "notifications.xml"
+        self.mechanicFile = self.config['files']['mechanics']
+        self.notificationFile = self.config['files']['notifications']
 
         self.notification_information = []
         self.update_fields_information = []
         self.popup = None
 
-        self.ns_api_username = "floris.dekruijff@student.hu.nl"
-        self.ns_api_password = "FK7CDKplQPsyOpBuPtkURW8incvUdT3T2ZSVoSkrTRdF7r5ARvCOyQ"
-        self.google_maps_api = googlemaps.Client(key='AIzaSyB3sE6Ekts-GoPlZ8vJ8P8i0UL1rVFnnPI')
-        self.twilio_api = twilio.rest.Client("ACdf5a5cafa61b2fa3c98615176e80a6ac", "514dcdd9428ece0db966ec011a93a084")
+        self.ns_api_username = self.config['api']['ns']['username']
+        self.ns_api_password = self.config['api']['ns']['password']
+        self.google_maps_api = googlemaps.Client(key=self.config['api']['google']['maps-key'])
+        self.twilio_api = twilio.rest.Client(
+            self.config['api']['twilio']['username'], self.config['api']['twilio']['password']
+        )
 
-        self.cardMachineList = PopulateDataLists.populate_card_machine_list(self.ns_api_username, self.ns_api_password)
+        self.cardMachineList = PopulateDataLists.populate_card_machine_list(self.config)
         self.mechanicList = PopulateDataLists.populate_mechanic_list(self.mechanicFile)
         self.notificationList = PopulateDataLists.populate_notification_list(self.notificationFile)
 
         self.randomCardMachineDefect = RandomCardMachineDefect(self, container)
 
-        self.title("NS Defect Overview")
+        self.title(self.config['tkinter']['title'])
         self.resizable(0, 0)
 
         self.geometry("{}x{}+{}+{}".format(

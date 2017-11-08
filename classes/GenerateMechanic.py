@@ -7,8 +7,6 @@
 import random
 import names
 import requests
-import sqlite3
-from classes.Mechanic import Mechanic
 
 
 class GenerateMechanic:
@@ -45,14 +43,14 @@ class GenerateMechanic:
     }
 
     @staticmethod
-    def get_address_from_coordinates(lat, long):
+    def get_address_from_coordinates(lat, long, key):
         """ Reverse geocoding used to get the address information from latitude and longitude. """
         base = "https://maps.googleapis.com/maps/api/geocode/json?"
         params = "latlng={lat},{lon}&sensor={sen}&key={key}".format(
             lat=lat,
             lon=long,
             sen='true',
-            key='AIzaSyDQJhy23ZFqmyD7Xq8a3GlvAopxD-6g_HM'
+            key=key
         )
 
         response = requests.get("{base}{params}".format(base=base, params=params))
@@ -62,14 +60,14 @@ class GenerateMechanic:
             return -1
 
     @staticmethod
-    def check_coordinates_in_province(lat, long, province):
+    def check_coordinates_in_province(lat, long, province, key):
         """ Reverse geocoding used to check whether the coordinates are in the passed province """
         base = "https://maps.googleapis.com/maps/api/geocode/json?"
         params = "latlng={lat},{lon}&sensor={sen}&key={key}".format(
             lat=lat,
             lon=long,
             sen='true',
-            key='AIzaSyDQJhy23ZFqmyD7Xq8a3GlvAopxD-6g_HM'
+            key=key
         )
 
         response = requests.get("{base}{params}".format(base=base, params=params))
@@ -100,6 +98,7 @@ class GenerateMechanic:
             >>> type(GenerateMechanic.generate_mechanic("Utrecht"))
             <class 'classes.Mechanic.Mechanic'>
         """
+        import classes.Mechanic as Mechanic
         if random.uniform(0, 1) <= 0.5:
             # Retrieve male name and set gender to male.
             name = names.get_full_name(gender='male')
@@ -131,4 +130,6 @@ class GenerateMechanic:
         )
 
         # Return the Mechanic object.
-        return Mechanic(name, gender, age, coordinates[0], coordinates[1], province, None, "Available", shift, phone)
+        return Mechanic.Mechanic(
+            name, gender, age, coordinates[0], coordinates[1], province, None, "Available", shift, phone
+        )

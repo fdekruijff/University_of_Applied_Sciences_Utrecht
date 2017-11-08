@@ -6,7 +6,8 @@
 
 import xml.etree.ElementTree as Et
 import sqlite3
-from classes.GenerateMechanic
+import yaml
+import classes.GenerateMechanic as GenerateMechanic
 
 
 class Mechanic:
@@ -25,8 +26,15 @@ class Mechanic:
         self.availability = availability
         self.shift = shift
         self.phone_number = phone
-        self.conn = sqlite3.connect('nsdefect.db')
-        self.c = conn.cursor()
+
+        try:
+            with open("config.yml", 'r') as yml:
+                self.config = yaml.load(yml)
+        except FileNotFoundError:
+            exit("The configuration file was not found, please supply one and try again.")
+
+        self.sql_connection = sqlite3.connect(self.config['files']['database'])
+        self.sql_cursor = self.sql_connection.cursor()
 
     def __str__(self):
         """ str() used to display all class attributes (but not their values). """
@@ -54,7 +62,9 @@ class Mechanic:
 
                     if meta.tag.lower() == attribute.lower() and found:
                         meta.text = value
-                        self.c.execute("Update mechanics SET '{}'='{}' WHERE name = '{}'".format(attribute, value, self.name))
+                        self.sql_cursor.execute(
+                            "Update mechanics SET '{}'='{}' WHERE name = '{}'".format(attribute, value, self.name)
+                        )
             # Write XML changes back to the file
             tree.write(mechanic_xml_file)
             return True
@@ -68,7 +78,7 @@ class Mechanic:
                 if meta.text.lower() == self.name.lower():
                     # The XML Element is found in the tree. Get its root and delete it.
                     tree.getroot().remove(x)
-                    self.c.execute("DELETE FROM mechanics WHERE name = '{}'".format(self.name))
+                    self.sql_cursor.execute("DELETE FROM mechanics WHERE name = '{}'".format(self.name))
         tree.write(mechanic_xml_file)
 
     @staticmethod
@@ -86,7 +96,7 @@ class Mechanic:
             False
          """
         if attribute == "region":
-            if (type(value) is str) and (value in GenerateMechanic.regions):
+            if (type(value) is str) and (value in GenerateMechanic.GenerateMechanic.regions):
                 return True
             return False
         elif attribute == "availability":
