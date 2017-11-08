@@ -5,12 +5,8 @@
 """
 
 import xml.etree.ElementTree as Et
-
-# TODO: Why does it has to be imported like his in order to work, looks silly, please fix :)
-try:
-    from classes.GenerateMechanic import GenerateMechanic
-except ImportError:
-    pass
+import sqlite3
+from classes.GenerateMechanic
 
 
 class Mechanic:
@@ -29,6 +25,8 @@ class Mechanic:
         self.availability = availability
         self.shift = shift
         self.phone_number = phone
+        self.conn = sqlite3.connect('nsdefect.db')
+        self.c = conn.cursor()
 
     def __str__(self):
         """ str() used to display all class attributes (but not their values). """
@@ -56,6 +54,7 @@ class Mechanic:
 
                     if meta.tag.lower() == attribute.lower() and found:
                         meta.text = value
+                        self.c.execute("Update mechanics SET '{}'='{}' WHERE name = '{}'".format(attribute, value, self.name))
             # Write XML changes back to the file
             tree.write(mechanic_xml_file)
             return True
@@ -69,6 +68,7 @@ class Mechanic:
                 if meta.text.lower() == self.name.lower():
                     # The XML Element is found in the tree. Get its root and delete it.
                     tree.getroot().remove(x)
+                    self.c.execute("DELETE FROM mechanics WHERE name = '{}'".format(self.name))
         tree.write(mechanic_xml_file)
 
     @staticmethod

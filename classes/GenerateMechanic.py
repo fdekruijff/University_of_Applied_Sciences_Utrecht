@@ -7,6 +7,7 @@
 import random
 import names
 import requests
+import sqlite3
 from classes.Mechanic import Mechanic
 
 

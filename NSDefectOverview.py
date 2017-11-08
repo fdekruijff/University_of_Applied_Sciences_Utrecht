@@ -6,6 +6,7 @@
 
 import datetime
 import math
+import sqlite3
 import tkinter as tk
 import xml.etree.ElementTree as Et
 from tkinter import *

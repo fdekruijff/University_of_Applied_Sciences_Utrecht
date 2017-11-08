@@ -8,6 +8,7 @@ import datetime
 import operator
 import os
 import requests
+import sqlite3
 
 import xml.etree.ElementTree as Et
 
@@ -16,7 +17,30 @@ from classes.GenerateMechanic import GenerateMechanic
 from classes.Mechanic import Mechanic
 from classes.Notification import Notification
 
+conn = sqlite3.connect('nsdefect.db')
+c = conn.cursor()
 
+def create_table():
+    c.execute('CREATE TABLE IF NOT EXISTS mechanics(name TEXT, gender TEXT, age TEXT, latitude TEXT, longitude TEXT, region TEXT, schedule TEXT, availability TEXT, shift TEXT, phone TEXT)')
+
+
+def data_entry_mechanics(name, gender, age, latitude, longitude, region, schedule, availability, shift, phone):
+    sname = name.replace('"','')
+    sgender = gender.replace('"','')
+    sregion = region.replace('"','')
+    savailability = availability.replace('"','')
+    sshift = shift.replace('"','')
+    sphone = phone.replace('"','')
+    c.execute("INSERT INTO mechanics VALUES('{}','{}','{}','{}','{}','{}','{}','{}','{}','{}')".format(sname, sgender, age, latitude, longitude, sregion, schedule, savailability, sshift, sphone))
+    conn.commit()
+
+def read_all():
+    c.execute("SELECT * FROM mechanics")
+    data = c.fetchall()
+    print(data)
+    return data
+
+create_table()
 class PopulateDataLists:
     """
         Static class that reads XML data files to fill data lists with previous data.
@@ -108,6 +132,7 @@ class PopulateDataLists:
             ... ) > 12
             True
          """
+        create_table()
         return_list = []
         if os.path.isfile(mechanic_file):  # Checks if file is present.
             if os.stat(mechanic_file).st_size == 0:  # Checks if file has data in it
@@ -117,6 +142,9 @@ class PopulateDataLists:
                         # If the file was empty or not present Mechanics will be generated and written to the file.
                         mechanic = GenerateMechanic.generate_mechanic(province)
                         return_list.append(mechanic)
+
+                        data_entry_mechanics(mechanic.name, mechanic.gender, mechanic.age, mechanic.latitude, mechanic.longitude, mechanic.region, mechanic.schedule, mechanic.availability, mechanic.shift, mechanic.phone_number)
+
                         mec = Et.SubElement(root, "mechanic")
                         Et.SubElement(mec, "name").text = str(mechanic.name)
                         Et.SubElement(mec, "gender").text = str(mechanic.gender)
@@ -130,6 +158,8 @@ class PopulateDataLists:
                         Et.SubElement(mec, "phone").text = str(mechanic.phone_number)
                 tree = Et.ElementTree(root)
                 tree.write(mechanic_file)
+                c.close()
+                conn.close()
             else:
                 # If there is data in the XML file it's being parsed and new Mechanic objects will be made from it.
                 tree = Et.parse(mechanic_file)
