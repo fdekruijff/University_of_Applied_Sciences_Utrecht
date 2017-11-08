@@ -46,7 +46,7 @@ class CardMachineOverviewPage(tk.Frame):
         self.searchEntry.configure(foreground="grey")
         self.searchEntry.configure(insertbackground="black")
         self.searchEntry.configure(justify='center')
-        self.searchEntry.insert(0, "Search Station")
+        self.searchEntry.insert(0, "Search name, status")
         self.searchEntry.bind('<FocusIn>', self.on_entry_click)
         self.searchEntry.bind("<Key>", self.search_station)
 
@@ -72,6 +72,7 @@ class CardMachineOverviewPage(tk.Frame):
         self.search_station(None)
 
     def search_station(self, key):
+        self.controller.log("CardMachineOverviewPage.search_station(key={})".format(key))
         if self.searchEntry.get() == "" or not key:
             for station in self.controller.cardMachineList:
                 self.stationListBox.insert(END, station.station_name)
@@ -80,14 +81,20 @@ class CardMachineOverviewPage(tk.Frame):
             for station in self.controller.cardMachineList:
                 if self.searchEntry.get().lower().strip() in station.station_name.lower():
                     self.stationListBox.insert(END, station.station_name)
+                elif self.searchEntry.get().lower().strip() in station.defect.lower():
+                    self.stationListBox.insert(END, station.station_name)
 
     def on_entry_click(self, x):
-        if self.searchEntry.get() == 'Search Station':
+        self.controller.log("CardMachineOverviewPage.on_entry_click()")
+        if self.searchEntry.get() == 'Search name, status':
             self.searchEntry.delete(0, END)
             self.searchEntry.insert(0, '')
             self.searchEntry.config(fg='black')
 
     def calculate_distance_time_popup(self, card_machine, mechanic_info):
+        self.controller.log(
+            "CardMachineOverviewPage.calculate_distance_time_popup(card_machine={}), mechanic_info={}".format(
+                card_machine, mechanic_info))
         travel_advice = self.controller.get_distance_travel_time(
             card_machine.latitude, card_machine.longitude,
             mechanic_info[1].latitude, mechanic_info[1].longitude
@@ -103,6 +110,9 @@ class CardMachineOverviewPage(tk.Frame):
         )
 
     def update_machine_specifics_labels(self, card_machine_info, card_machine, mechanic_info):
+        self.controller.log(
+            "CardMachineOverviewPage.update_machine_specifics_labels(card_machine_info={}, card_machine={}, mechanic_info={})".format(
+                card_machine_info, card_machine, mechanic_info))
         rely = 0
         for label in self.informationHeaders:
             self.tempLabel = Label(self.informationContainer)
@@ -149,6 +159,7 @@ class CardMachineOverviewPage(tk.Frame):
             rely += 0.05
 
     def get_machine_specifics(self, x):
+        self.controller.log("CardMachineOverviewPage.get_machine_specifics(x={})".format(x))
         station_input = x.widget.get(x.widget.curselection()[0])
         card_machine = None
         card_machine_info = []

@@ -43,7 +43,7 @@ class NotificationPage(tk.Frame):
         self.searchEntry.configure(justify='center')
         self.searchEntry.insert(0, "Search Notification")
         self.searchEntry.bind('<FocusIn>', self.on_entry_click)
-        # self.searchEntry.bind("<Key>", self.search_station)
+        self.searchEntry.bind("<Key>", self.search_notification)
 
         self.notificationListBox = Listbox(self.backgroundContainer)
         self.notificationListBox.place(relx=0.020, rely=0.15, relwidth=0.96, relheight=0.80)
@@ -66,15 +66,35 @@ class NotificationPage(tk.Frame):
         self.update_notification_list()
 
     def on_entry_click(self, x):
+        self.controller.log("NotificationPage.on_entry_click()")
         if self.searchEntry.get() == 'Search Notification':
             self.searchEntry.delete(0, END)
             self.searchEntry.insert(0, '')
             self.searchEntry.config(fg='black')
 
     def update_notification_list(self):
+        self.controller.log("NotificationPage.update_notification_list()")
         self.notificationListBox.delete(0,  END)
         for notification in self.controller.notificationList:
             entry = "{time}" \
                     "                       " \
                     "{message}".format(time=notification.time, message= notification.message)
             self.notificationListBox.insert(0, entry)
+
+    def search_notification(self, key):
+        self.controller.log("NotificationPage.search_notification(key={)".format(key))
+        if self.searchEntry.get() == "" or not key:
+            self.notificationListBox.delete(0, END)
+            for notification in self.controller.notificationList:
+                entry = "{time}" \
+                        "                       " \
+                        "{message}".format(time=notification.time, message=notification.message)
+                self.notificationListBox.insert(END, entry)
+        else:
+            self.notificationListBox.delete(0, END)
+            for notification in self.controller.notificationList:
+                entry = "{time}" \
+                        "                       " \
+                        "{message}".format(time=notification.time, message=notification.message)
+                if self.searchEntry.get().lower().strip() in entry.lower():
+                    self.notificationListBox.insert(END, entry)

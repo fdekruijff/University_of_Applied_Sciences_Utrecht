@@ -18,6 +18,7 @@ from classes.CardMachine import CardMachine
 from classes.Mechanic import Mechanic
 from classes.Notification import Notification
 from classes.PopulateDataLists import PopulateDataLists
+from classes.RandomCardMachineDefect import RandomCardMachineDefect
 from pages.CardMachineOverviewPage import CardMachineOverviewPage
 from pages.MechanicOverviewPage import MechanicOverviewPage
 from pages.NotificationPage import NotificationPage
@@ -42,6 +43,8 @@ class NSDefectOverview(tk.Tk):
         self.width = 800
         self.height = 533
 
+        self.log_message = True
+
         self.mechanicFile = "mechanics.xml"
         self.notificationFile = "notifications.xml"
 
@@ -58,6 +61,11 @@ class NSDefectOverview(tk.Tk):
         self.mechanicList = PopulateDataLists.populate_mechanic_list(self.mechanicFile)
         self.notificationList = PopulateDataLists.populate_notification_list(self.notificationFile)
 
+        self.randomCardMachineDefect = RandomCardMachineDefect(self, container)
+
+        self.title("NS Defect Overview")
+        self.resizable(0, 0)
+
         self.geometry("{}x{}+{}+{}".format(
             self.width,
             self.height,
@@ -65,10 +73,6 @@ class NSDefectOverview(tk.Tk):
             int(math.floor(GetSystemMetrics(1)) / 2 - self.height / 2) - 100)
         )
 
-        self.title("NS Defect Overview")
-        self.resizable(0, 0)
-
-        # Initialise TkInter container settings.
         container.pack(side="top", fill="both", expand=True)
         container.grid_rowconfigure(0, weight=1)
         container.grid_columnconfigure(0, weight=1)
@@ -86,13 +90,24 @@ class NSDefectOverview(tk.Tk):
         StartPage(container, self).grid(row=0, column=0, sticky="nsew")
         self.show_frame(StartPage)
 
+    def break_card_machine(self, machine: CardMachine):
+        self.log("break_card_machine(machine={})".format(machine))
+        machine.defect = "Defect"
+        self.new_notification(None, "Card machine {} status changed to {}".format(machine.station_name, machine.defect))
+
+    def log(self, message):
+        if self.log_message:
+            print("{} - {}".format(datetime.datetime.now().strftime('%d-%m-%Y %X'), message))
+
     def show_frame(self, cont):
+        self.log("NSDefectOverview.show_frame(cont={})".format(cont))
         frame = self.frames[cont]
         if cont == "NotificationPage":
             frame.update_notification_list()
         frame.tkraise()
 
     def write_notification(self, notification: Notification):
+        self.log("NSDefectOverview.write_notification(notification={})".format(notification))
         tree = Et.parse(self.notificationFile)
         root = tree.getroot()
         notifications = Et.SubElement(Et.Element("notifications"), "notification")
@@ -122,6 +137,7 @@ class NSDefectOverview(tk.Tk):
         """
             This function loops through all the current mechanics and finds the one closest to the passed card machine
         """
+        self.log("NSDefectOverview.get_closest_mechanic(card_machine={}, exclude_mechanic={})".format(card_machine, exclude_mechanic))
         lowest = 0
         return_mechanic = None
         for mechanic in self.mechanicList:
@@ -142,6 +158,9 @@ class NSDefectOverview(tk.Tk):
             This function calculates and returns the distance and travel time based on two coordinates
             @:return: distance, travel time
         """
+        self.log("NSDefectOverview.get_distance_travel_time(latitude1={}, longitude1=={}, latitude2={}, longitude2={})".format(
+            latitude1, longitude1, latitude2, longitude2)
+        )
         result = self.google_maps_api.distance_matrix((latitude1, longitude1), (latitude2, longitude2))
         try:
             return (result['rows'][0]['elements'][0]['distance']['text'].split(' ')[0],
@@ -150,6 +169,7 @@ class NSDefectOverview(tk.Tk):
             self.get_distance_travel_time(latitude1, longitude1, latitude2, longitude2)
 
     def update_fields(self):
+        self.log("NSDefectOverview.update_fields()")
         field = ''
         value = ''
         count = 0
@@ -189,6 +209,10 @@ class NSDefectOverview(tk.Tk):
             This function creates a pop-up based on the passed parameters. It also generates buttons based on the passed
             list.
         """
+        self.log(
+            "new_popup(title={}, message={}, popup_width={}, popup_height={}, "
+            "background_color={}, buttons={}, fields={})"
+            "".format(title, message, popup_width, popup_height, background_color, buttons, fields))
         self.popup = tk.Tk()
         self.popup.wm_title(title)
         self.popup.geometry("{}x{}+{}+{}".format(
@@ -245,11 +269,14 @@ class NSDefectOverview(tk.Tk):
         self.popup.mainloop()
 
     def new_notification(self, mechanic: Mechanic, message, sms=False):
-        if sms: self.send_sms(self.message, mechanic.phone_number)
+        self.log("NSDefectOverview.new_notification(mechanic={}, message={}, sms={})".format(mechanic, message, sms))
+        if sms:
+            self.send_sms(self.message, mechanic.phone_number)
         self.notificationList.append(Notification(datetime.datetime.now(), message))
         self.write_notification(self.notificationList[-1])
 
     def new_notification_static(self):
+        self.log("NSDefectOverview.new_notification_static()")
         self.send_sms(self.notification_information[0], self.notification_information[1].phone_number)
         self.notification_information[1].set_attribute("availability", "Occupied", self.mechanicFile)
         self.notificationList.append(Notification(datetime.datetime.now(), self.notification_information[0]))
@@ -261,6 +288,7 @@ class NSDefectOverview(tk.Tk):
             This function dispatches a mechanic to a card machine, and updates the logs for it.
             It will update the Notification center as well.
         """
+        self.log("NSDefectOverview.dispatch_mechanic(card_machine={}, mechanic={})".format(card_machine, mechanic))
         message = ""
         title = ""
         buttons = []
@@ -290,7 +318,6 @@ class NSDefectOverview(tk.Tk):
             )
 
             buttons = [{"text": "Ok", "command": "self.new_notification_static"}]
-            self.new_notification_static()
 
         elif card_machine.defect == "Defect" or card_machine.defect == "Operational" and mechanic.availability == "Occupied":
             title = "Are you sure?"
@@ -332,14 +359,15 @@ class NSDefectOverview(tk.Tk):
             ]
 
         self.new_popup(title, message, 450, 125, "#fcc63f", buttons, None)
+        self.new_notification_static()
 
     def send_sms(self, message, number):
+        self.log("NSDefectOverview.send_sms(message={}, number={})".format(message, number))
         try:
-            pass
-            # self.twilio_api.messages.create(
-            #     to=number,
-            #     from_="+3197014200218",
-            #     body=message
-            # )
-        except twilio.base.exceptions.TwilioRestException:
-            print("Number not accepted")
+            self.twilio_api.messages.create(
+                to=number,
+                from_="+3197014200218",
+                body=message
+            )
+        except twilio.base.exceptions.TwilioRestException or Exception:
+            self.log("NSDefectOverview.Phone number: {} was not accepted.".format(number))

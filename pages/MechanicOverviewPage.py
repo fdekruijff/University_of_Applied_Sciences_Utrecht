@@ -56,7 +56,7 @@ class MechanicOverviewPage(tk.Frame):
             foreground=self.controller.buttonBackgroundColor,
             relief=self.controller.buttonRelief,
             highlightbackground="#fcc63f",
-            highlightcolor = "#fcc63f",
+            highlightcolor="#fcc63f",
             width=500, height=100,
         )
 
@@ -70,11 +70,13 @@ class MechanicOverviewPage(tk.Frame):
         self.search_mechanic(None)
 
     def update_mechanic_list(self):
+        self.controller.log("MechanicOverviewPage.update_mechanic_list()")
         self.mechanicListBox.delete(0, END)
         for mechanic in self.controller.mechanicList:
             self.mechanicListBox.insert(END, mechanic.name)
 
     def update_mechanic_information(self):
+        self.controller.log("MechanicOverviewPage.update_mechanic_information()")
         self.controller.update_fields_information.append(self.selectedMechanic)
         self.controller.new_popup(
             "Update information",
@@ -97,6 +99,7 @@ class MechanicOverviewPage(tk.Frame):
             return
 
     def remove_mechanic(self):
+        self.controller.log("MechanicOverviewPage.remove_mechanic()")
         if self.selectedMechanic:
             try:
                 self.controller.new_notification(
@@ -113,6 +116,7 @@ class MechanicOverviewPage(tk.Frame):
                 return
 
     def change_availability(self):
+        self.controller.log("MechanicOverviewPage.change_availability()")
         if self.selectedMechanic:
             if self.selectedMechanic.availability == "Available":
                 self.selectedMechanic.set_attribute("availability", "Occupied", self.controller.mechanicFile)
@@ -128,6 +132,7 @@ class MechanicOverviewPage(tk.Frame):
             )
 
     def change_shift(self):
+        self.controller.log("MechanicOverviewPage.change_shift()")
         if self.selectedMechanic:
             if self.selectedMechanic.shift == "day":
                 self.selectedMechanic.set_attribute("shift", "night", self.controller.mechanicFile)
@@ -143,6 +148,7 @@ class MechanicOverviewPage(tk.Frame):
             )
 
     def search_mechanic(self, key):
+        self.controller.log("MechanicOverviewPage.search_mechanic(key={})".format(key))
         if self.searchEntry.get() == "" or not key:
             for mechanic in self.controller.mechanicList:
                 self.mechanicListBox.insert(END, mechanic.name)
@@ -157,12 +163,16 @@ class MechanicOverviewPage(tk.Frame):
                     self.mechanicListBox.insert(END, mechanic.name)
 
     def on_entry_click(self, x):
+        self.controller.log("MechanicOverviewPage.on_entry_click()")
         if self.searchEntry.get() == "Search for name, region or availability":
             self.searchEntry.delete(0, END)
             self.searchEntry.insert(0, '')
             self.searchEntry.config(fg='black')
 
     def get_mechanic_specifics(self, x, passed_mechanic=None, index=None):
+        self.controller.log(
+            "MechanicOverviewPage.get_mechanic_specifics(x={}, passed_mechanic={}, index={})".format(x, passed_mechanic,
+                                                                                                     index))
         mechanic_info = []
         mechanic = None
         if x and index is None and passed_mechanic is None:
