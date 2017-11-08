@@ -1,0 +1,27 @@
+api:
+  google:
+    requests-key: "AIzaSyDQJhy23ZFqmyD7Xq8a3GlvAopxD-6g_HM"
+    maps-key: "AIzaSyB3sE6Ekts-GoPlZ8vJ8P8i0UL1rVFnnPI"
+  ns:
+    url: "http://webservices.ns.nl/ns-api-stations-v2"
+    username: "floris.dekruijff@student.hu.nl"
+    password: "FK7CDKplQPsyOpBuPtkURW8incvUdT3T2ZSVoSkrTRdF7r5ARvCOyQ"
+  twilio:
+    username: "ACdf5a5cafa61b2fa3c98615176e80a6ac"
+    password: "514dcdd9428ece0db966ec011a93a084"
+files:
+  mechanics: "mechanics.xml"
+  notifications: "notifications.xml"
+  database: "nsdefect.db"
+tkinter:
+  button:
+    width: 110
+    height: 70
+    backgroundHex: "#212b5c"
+    foregroundHex: "#ffffff"
+    relief: FLAT
+  title: "NS Defect Overview"
+  window:
+    width: 800
+    height: 533
+  logging: True
