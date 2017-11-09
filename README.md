@@ -13,6 +13,7 @@ The following python modules need to be imported
 * ```python -m pip install googlemaps```
 * ```python -m pip install twilio```
 * ```python -m pip install pyyaml```
+* ```python -m pip install names```
 
 ### Installing Software
 
