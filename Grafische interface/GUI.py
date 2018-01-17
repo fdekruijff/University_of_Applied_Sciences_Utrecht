@@ -23,13 +23,14 @@ def haal_gegevens_op():
             schrijven.writerow(lijn)
 
 def toon_gegevens():
+    'Zet de gegevens in een listbox met een bijbehorende kleur'
     with open(bestandLocatie, 'r') as myCSVFILE:  # Leest het geschreven csv bestand
         textVeld.delete(0, END)
         reader = csv.reader(myCSVFILE, delimiter=';')
         index = 2
 
-        textVeld.insert(0, '{:19}{:15}{:21}{:18}{:4}'.format('Datum/tijd (MET)', '|Astronomisch|', '|Gemeten waterstand|',
-                                                              '|Verwachte opzet|', '|Verwachting RWS'))
+        textVeld.insert(0, '{:19}{:15}{:21}{:18}{:4}'.format('Datum/tijd (MET)', '|Astronomisch', '|Gemeten waterstand',
+                                                              '|Verwachte opzet', '|Verwachting RWS'))
         textVeld.insert(1, '{:19}|{:14}|{:20}|{:17}|{:4}'.format('','','','',''))
         myCSVFILE.readline()
 
@@ -59,10 +60,14 @@ def button1():
 def button2():
     label2['fg'] = 'red'
     label2['text'] = 'GESLOTEN'
+    button2['state'] = 'disabled'
+    button3['state'] = 'active'
 
 def button3():
     label2['fg'] = 'green'
     label2['text'] = 'OPEN'
+    button3['state'] = 'disabled'
+    button2['state'] = 'active'
 
 
 
@@ -83,7 +88,7 @@ scrollbar.pack(side=RIGHT, fill=Y)
 
 hoofdframe = Frame(master=root, #Maakt hoofdframe aan
                    width=125,
-                   height=666)
+                   height=666,)
 hoofdframe.pack(side=LEFT, fill=BOTH)
 
 resultaatframe = Frame(master=root, #Maakt resultaatframe aan
@@ -119,7 +124,7 @@ button3.pack(side=BOTTOM, fill=X, pady=5)
 
 
 label1 = Label(master=hoofdframe, text="Status waterkering")
-label1.pack(side=TOP, fill=X, pady=5)
+label1.pack(side=TOP, fill=X)
 
 label2 = Label(master=hoofdframe, text="", fg='green')
 label2.pack(side=TOP, fill=X, pady=5)
