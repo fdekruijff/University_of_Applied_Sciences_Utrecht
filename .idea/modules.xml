@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/IDP.iml" filepath="$PROJECT_DIR$/.idea/IDP.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../LCD_scherm/.idea/LCD_scherm.iml" filepath="$PROJECT_DIR$/../LCD_scherm/.idea/LCD_scherm.iml" />
     </modules>
   </component>
 </project>

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="RemoteMappingsManager">
+    <list>
+      <list>
+        <remote-mappings server-id="python@ssh://pi@192.168.42.1:22/usr/bin/python">
+          <settings>
+            <list>
+              <mapping local-root="$PROJECT_DIR$/../LCD_scherm" remote-root="/home/pi/Adafruit_Python_CharLCD" />
+            </list>
+          </settings>
+        </remote-mappings>
+      </list>
+    </list>
+  </component>
+</project>
