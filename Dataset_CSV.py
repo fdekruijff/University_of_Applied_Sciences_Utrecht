@@ -12,14 +12,14 @@ def haal_gegevens_op():
 
         decoded_content = download.content.decode('utf-8')
 
-        cr = csv.reader(decoded_content.splitlines(), delimiter=';')
-        my_list = list(cr)
+        lezen = csv.reader(decoded_content.splitlines(), delimiter=';')
+        lijst = list(lezen)
 
 
     with open(bestandLocatie, 'w', newline='') as myCSVFile:    #Schrijft gegevens weg in csv bestand
         schrijven = csv.writer(myCSVFile, delimiter=';')
 
-        for lijn in my_list:
+        for lijn in lijst:
             schrijven.writerow(lijn)
 
 
