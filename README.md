@@ -34,7 +34,7 @@ Run die code
 
 Het volgende schema laat zien hoe de Raspberry Pi's moeten worden aangesloten om de software te laten werken.
 
-![wiring scheme](#)
+![wiring scheme](https://image.prntscr.com/image/IhZQmwpgTMaQ_WvHPOPgYA.png)
 
 ## Gemaakt met
 
@@ -50,7 +50,6 @@ Het volgende schema laat zien hoe de Raspberry Pi's moeten worden aangesloten om
 * **Rik van Velzen** - *Business & IT management* - [Rikvanvelzen](https://github.com/Rikvanvelzen)
 * **David Cramer** - *Technische informatica* - [paggaboi](https://github.com/paggaboi)
 * **Remco Taal** - *Software & Information Engineering* - [RemcoTaal](https://github.com/RemcoTaal)
-* **Tigran Khatchadrijan** - *Software & Netwerk Engineering* - [#](#)
 
 ## Licentie
 
