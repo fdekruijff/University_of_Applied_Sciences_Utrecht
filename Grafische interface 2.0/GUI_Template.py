@@ -88,8 +88,8 @@ my_font = tkinter.font.Font(family="Courier", size=9)
 my_font2 = tkinter.font.Font(family="Courier", size=12)
 
 root.resizable(width=False, height=False)
-root.minsize(width=800, height=666)
-root.maxsize(width=800, height=666)
+root.minsize(width=800, height=600)
+root.maxsize(width=800, height=600)
 
 hoofdframe = Frame(master=root, #Maakt hoofdframe aan
                    background='midnight blue',
@@ -121,7 +121,7 @@ textVeld = Listbox(master=resultaatframe,                       #Listbox om resu
                    bd=5,
                    width=55,
                    font=my_font,
-                   height=30,
+                   height=26,
                    )
 
 textVeld.pack(side=BOTTOM)
