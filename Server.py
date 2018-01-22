@@ -7,6 +7,7 @@
 import datetime
 import socket
 import sys
+import json
 import time
 from _thread import *
 
@@ -21,10 +22,17 @@ class Server:
         self.debug = debug
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
+        self.barrier_open = False
+        self.operational = True
+
     @staticmethod
     def get_time():
         """ Returns current time in format %d-%m-%Y %X """
         return datetime.datetime.now().strftime('%d-%m-%Y %X')
+
+    def change_barrier(self):
+        """ Open or close barrier based on variable """
+        pass
 
     def init_socket(self) -> None:
         """ Initialises server socket """
@@ -65,15 +73,16 @@ class Server:
         return_string += "}"
         return return_string
 
-    def parse_socket_data(self, client_uuid: str, data_header: str, data: str) -> None:
+    def parse_socket_data(self, client_uuid: str, data_header: str, data: str) -> str or None:
         """ Handles socket data accordingly, can be either data or a data_header as data type """
         client = self.find_client(client_uuid)
         if data_header == "IS_ALIVE" and data == "ACK":
-            client.ping = time.time()
-            # TODO: als laatste ping langer dan x seconden is moet het systeem dat doorhebben.
-        elif data_header == "STATUS":
-            pass
-            # TODO: parse JSON socket data
+            client.last_ping = time.time()
+        elif data_header == "BARRIER_STATUS":
+            client.barrier_open = json.loads(data)['barrier_open']
+            self.change_barrier()
+        elif data_header == "UUID":
+            return data
 
     def socket_write(self, conn, message: str, client_uuid: str) -> None:
         """
@@ -125,10 +134,11 @@ class Server:
         self.socket_write(connection, "UUID_REQ", "")
         try:
             data = connection.recv(2048).decode('utf-8').strip().split(',')
-            return str(self.parse_socket_data(data[0], data[1], data[2]))
+            print (data)
+            return str(self.parse_socket_data(data[0], data[2], data[1]))
 
         except ConnectionError or ConnectionResetError:
-            pass
+            return "fout"
 
     def clients_alive(self):
         """
@@ -157,6 +167,7 @@ if __name__ == '__main__':
             uuid = server.get_uuid(c)
             y = Node(i[0], i[1], uuid, c)
             server.client_list.append(y)
+            print("clientlist: {}".format(server.client_list))
             if "GUI" in uuid: y.is_gui = True
             server.socket_write(c, "REG_COMPLETE", uuid)
 
