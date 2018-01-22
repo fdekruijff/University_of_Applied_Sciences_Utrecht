@@ -72,8 +72,10 @@ class Server:
             client.ping = time.time()
             # TODO: als laatste ping langer dan x seconden is moet het systeem dat doorhebben.
         elif data_header == "STATUS":
-            pass
+            print (data)
             # TODO: parse JSON socket data
+        elif data_header == "UUID":
+            return data
 
     def socket_write(self, conn, message: str, client_uuid: str) -> None:
         """
@@ -125,10 +127,11 @@ class Server:
         self.socket_write(connection, "UUID_REQ", "")
         try:
             data = connection.recv(2048).decode('utf-8').strip().split(',')
-            return str(self.parse_socket_data(data[0], data[1], data[2]))
+            print (data)
+            return str(self.parse_socket_data(data[0], data[2], data[1]))
 
         except ConnectionError or ConnectionResetError:
-            pass
+            return "fout"
 
     def clients_alive(self):
         """
@@ -157,6 +160,7 @@ if __name__ == '__main__':
             uuid = server.get_uuid(c)
             y = Node(i[0], i[1], uuid, c)
             server.client_list.append(y)
+            print("clientlist: {}".format(server.client_list))
             if "GUI" in uuid: y.is_gui = True
             server.socket_write(c, "REG_COMPLETE", uuid)
 
