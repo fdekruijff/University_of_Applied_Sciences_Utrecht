@@ -17,16 +17,16 @@ class BarrierNode(Node):
     def __init__(self, ip_address: str, port: int, node_name: str, debug: bool):
         self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-        super.ip_address = ip_address
-        super.port = port
-        super.uuid = node_name
+        self.ip_address = ip_address
+        self.port = port
+        self.uuid = node_name
 
-        super.connected_to_server = False
-        super.registered = False
-        super.debug = debug
-        super.last_ping = 0
+        self.connected_to_server = False
+        self.registered = False
+        self.debug = debug
+        self.last_ping = 0
 
-        super.barrier_open = True
+        self.barrier_open = True
         super().__init__(ip_address, 5555, node_name, self.client_socket)
 
     def main_loop(self):
