@@ -6,6 +6,7 @@ import uuid
 
 UUID = "GUI" + uuid.uuid4().hex
 
+laatste_waterstand = ''
 CSV_URL = 'https://waterberichtgeving.rws.nl/wbviewer/maak_grafiek.php?loc=HOEK&set=eindverwachting&nummer=1&format=csv'
 
 def haal_gegevens_op():
@@ -45,6 +46,8 @@ def toon_gegevens():
             verw_RWS = lijn[4]
 
 
+            if len(waterstand) != 0:
+                laatste_waterstand = waterstand     #Sla de laatste ingevulde waarde van de waterstand op
 
             textVeld.insert(index, '{:19}|{:14}|{:20}|{:17}|{:4}'.format(datum, astronomisch, waterstand, opzet, verw_RWS))
             if int(opzet) >= 30:
@@ -56,9 +59,14 @@ def toon_gegevens():
 
             index += 1
 
+    return laatste_waterstand
+
 def button1():
-    #haal_gegevens_op()
-    toon_gegevens()
+    haal_gegevens_op()
+    waterpeil = toon_gegevens() + 'cm'
+    label6['text'] = waterpeil
+
+
 
 def button2():
     'Kering sluiten'
@@ -80,9 +88,9 @@ def button3():
 
 bestandLocatie = 'Waterpeil.csv'
 
+
+
 root = Tk()
-
-
 
 my_font = tkinter.font.Font(family="Courier", size=9)
 my_font2 = tkinter.font.Font(family="Courier", size=12)
@@ -185,3 +193,17 @@ label6.grid(row=2, column=1, sticky=W)
 
 
 root.mainloop()
+#while True:
+#    root.update()
+#    test = input('Vul in: ')
+#    if test == 'ja':
+#        label5['text'] = 'Testoke'
+
+
+
+
+
+
+
+
+
