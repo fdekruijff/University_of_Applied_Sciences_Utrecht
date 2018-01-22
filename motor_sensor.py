@@ -8,71 +8,15 @@ import time
 GPIO.setmode(GPIO.BCM)
 # Zet waarschuwingen uit.
 GPIO.setwarnings(False)
-# Stel de GPIO pinnen in voor de stappenmotor:
-StepPins = [5, 6, 13, 26]
-
-#Servo uitgang
-GPIO.setup(4, GPIO.OUT)
-# Configureer de pin voor PWM met een frequentie van 50Hz.
-p = GPIO.PWM(4, 50)
-# Start PWM op de GPIO pin met een duty-cycle van 6%
-p.start(6)
-
-#GPIO comminucatie
-GPIO.setup(20,GPIO.OUT)
-GPIO.setup(16, GPIO.IN)
-GPIO.output(20,GPIO.HIGH)
-
-# Set alle pinnen als uitgang.
-for pin in StepPins:
-    print "Setup pins"
-    GPIO.setup(pin, GPIO.OUT)
-    GPIO.output(pin, False)
-
-# Definieer variabelen.
-StepCounter = 0
-
-# Definieer simpele volgorde
-StepCount1 = 4
-Seq1 = []
-Seq1 = range(0, StepCount1)
-Seq1[0] = [1, 0, 0, 0]
-Seq1[1] = [0, 1, 0, 0]
-Seq1[2] = [0, 0, 1, 0]
-Seq1[3] = [0, 0, 0, 1]
-
-# Definieer geadvanceerde volgorde (volgens de datasheet)
-StepCount2 = 8
-Seq2 = []
-Seq2 = range(0, StepCount2)
-Seq2[0] = [1, 0, 0, 0]
-Seq2[1] = [1, 1, 0, 0]
-Seq2[2] = [0, 1, 0, 0]
-Seq2[3] = [0, 1, 1, 0]
-Seq2[4] = [0, 0, 1, 0]
-Seq2[5] = [0, 0, 1, 1]
-Seq2[6] = [0, 0, 0, 1]
-Seq2[7] = [1, 0, 0, 1]
-
-# Welke stappenvolgorde gaan we hanteren?
-Seq = Seq2
-StepCount = StepCount2
-#afstand
-afstand = 512
+#afstand 4096 is 1 rondje op de stapmotor
+afstand = 4096
 status = 'open'
-
-#sensor
-# Zet de pinmode op Broadcom SOC.
-GPIO.setmode(GPIO.BCM)
-# Zet waarschuwingen uit.
-GPIO.setwarnings(False)
-# Stel de GPIO pinnen in voor de stappenmotor:
-StepPins = [5, 6, 13, 26]
 
 #GPIO comminucatie
 GPIO.setup(20,GPIO.OUT)
 GPIO.setup (21, GPIO.IN)
 GPIO.setup(16, GPIO.IN)
+
 # set GPIO Pins
 GPIO_TRIGGER = 2
 GPIO_ECHO = 3
@@ -110,6 +54,47 @@ def distance():
 
 #sluit de kering
 def sluitkering_motor():
+    # Stel de GPIO pinnen in voor de stappenmotor:
+    StepPins = [5, 6, 13, 26]
+
+    # Set alle pinnen als uitgang.
+    for pin in StepPins:
+        print "Setup pins"
+        GPIO.setup(pin, GPIO.OUT)
+        GPIO.output(pin, False)
+
+    # Definieer variabelen.
+    StepCounter = 0
+
+    # Definieer simpele volgorde
+    StepCount1 = 4
+    Seq1 = []
+    Seq1 = range(0, StepCount1)
+    Seq1[0] = [1, 0, 0, 0]
+    Seq1[1] = [0, 1, 0, 0]
+    Seq1[2] = [0, 0, 1, 0]
+    Seq1[3] = [0, 0, 0, 1]
+
+    # Definieer geadvanceerde volgorde (volgens de datasheet)
+    StepCount2 = 8
+    Seq2 = []
+    Seq2 = range(0, StepCount2)
+    Seq2[0] = [1, 0, 0, 0]
+    Seq2[1] = [1, 1, 0, 0]
+    Seq2[2] = [0, 1, 0, 0]
+    Seq2[3] = [0, 1, 1, 0]
+    Seq2[4] = [0, 0, 1, 0]
+    Seq2[5] = [0, 0, 1, 1]
+    Seq2[6] = [0, 0, 0, 1]
+    Seq2[7] = [1, 0, 0, 1]
+
+    # Welke stappenvolgorde gaan we hanteren?
+    Seq = Seq2
+    StepCount = StepCount2
+    # afstand
+    # 4096 is 1 rondje op de stapmotor
+    afstand = 4096
+    status = 'open'
     StepCounter = 0
     for rond in range(0, afstand):
         for pin in range(0, 4):
@@ -127,10 +112,49 @@ def sluitkering_motor():
         if (StepCounter < 0): StepCounter = StepCount
 
         # Wacht voor de volgende stap (lager = snellere draaisnelheid)
-        sleep(.01)
+        sleep(.001)
 
 #opent de kering
 def openkering_motor():
+    # Stel de GPIO pinnen in voor de stappenmotor:
+    StepPins = [26, 13, 6, 5]
+
+    # Set alle pinnen als uitgang.
+    for pin in StepPins:
+        print "Setup pins"
+        GPIO.setup(pin, GPIO.OUT)
+        GPIO.output(pin, False)
+
+    # Definieer variabelen.
+    StepCounter = 0
+
+    # Definieer simpele volgorde
+    StepCount1 = 4
+    Seq1 = []
+    Seq1 = range(0, StepCount1)
+    Seq1[0] = [1, 0, 0, 0]
+    Seq1[1] = [0, 1, 0, 0]
+    Seq1[2] = [0, 0, 1, 0]
+    Seq1[3] = [0, 0, 0, 1]
+
+    # Definieer geadvanceerde volgorde (volgens de datasheet)
+    StepCount2 = 8
+    Seq2 = []
+    Seq2 = range(0, StepCount2)
+    Seq2[0] = [1, 0, 0, 0]
+    Seq2[1] = [1, 1, 0, 0]
+    Seq2[2] = [0, 1, 0, 0]
+    Seq2[3] = [0, 1, 1, 0]
+    Seq2[4] = [0, 0, 1, 0]
+    Seq2[5] = [0, 0, 1, 1]
+    Seq2[6] = [0, 0, 0, 1]
+    Seq2[7] = [1, 0, 0, 1]
+
+    # Welke stappenvolgorde gaan we hanteren?
+    Seq = Seq2
+    StepCount = StepCount2
+
+    # Set alle pinnen als uitgang.
     StepCounter = 0
     for rond in range(0, afstand):
         for pin in range(0, 4):
@@ -148,32 +172,19 @@ def openkering_motor():
         if (StepCounter < 0): StepCounter = StepCount
 
         # Wacht voor de volgende stap (lager = snellere draaisnelheid)
-        sleep(.002)
-
-def sluitkering_servo():
-    # 90 graden (links)
-    p.ChangeDutyCycle(11)
-    sleep(1)
-
-def openkering_servo():
-    # -90 graden (rechts)
-    p.ChangeDutyCycle(2.5)
-    sleep(1)
-
-
+        sleep(0.001)
 
 #main loop
 try:
     while True:
-
         dist = distance()
         if dist <= 10 and status == 'open':
             print ("Sluit waterkering")
-            sluitkering_servo()
+            sluitkering_motor()
             status = "dicht"
         elif dist > 10 and status == 'dicht':
             print ("Open waterkering")
-            openkering_servo()
+            openkering_motor()
             status = "open"
         else:
             print ("Gemeten afstand = %.1f cm" % dist)
