@@ -11,7 +11,6 @@ class Node:
         self.port = port
         self.connection_handler = connection_handler
         self.uuid = uuid
-
         self.barrier_open = False
         self.online = False
         self.debug = False

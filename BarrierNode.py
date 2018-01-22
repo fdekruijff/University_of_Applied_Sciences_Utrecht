@@ -16,18 +16,17 @@ from Node import Node
 class BarrierNode(Node):
     def __init__(self, ip_address: str, port: int, node_name: str, debug: bool):
         self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.ip_address = ip_address
+        self.port = port
+        self.uuid = node_name
+        self.is_gui = False
+        self.connected_to_server = False
+        self.registered = False
+        self.debug = debug
+        self.last_ping = 0
+        self.barrier_open = True
 
-        super.ip_address = ip_address
-        super.port = port
-        super.uuid = node_name
-
-        super.connected_to_server = False
-        super.registered = False
-        super.debug = debug
-        super.last_ping = 0
-
-        super.barrier_open = True
-        super().__init__(ip_address, 5555, node_name, self.client_socket)
+        super().__init__(ip_address, port, node_name, self.client_socket)
 
     def main_loop(self):
         try:
@@ -59,8 +58,10 @@ class BarrierNode(Node):
         if data == "IS_ALIVE":
             self.socket_write(data_header="IS_ALIVE", data="ACK")
             self.last_ping = time.time()
-        if data == "STATUS":
+        elif data == "BARRIER_STATUS":
             self.socket_write(data_header="STATUS", data=str(self))
+        elif data == "UUID_REQ":
+            self.socket_write(str(self.uuid), "UUID")
 
     def socket_write(self, data_header: str, data: str):
         """
@@ -80,12 +81,13 @@ class BarrierNode(Node):
 
     def stop_client(self):
         """ Cleans up GPIO when exiting """
+        # TODO: Cleanup GPIO here
         pass
 
     def has_timeout(self):
         """ Check if the client is no longer connected if it has not received socket data for more than 5.5 seconds """
         while True:
-            time.sleep(10)
+            time.sleep(1)
             if time.time() - self.last_ping >= 5.5 and self.last_ping != 0:
                 if self.debug: print("There is no longer a connection to the server, exiting system")
                 self.stop_client()
@@ -111,10 +113,14 @@ class BarrierNode(Node):
 if __name__ == '__main__':
     try:
         node = BarrierNode(
-            str(input("Enter IP address of server: ")),
-            int(input("Enter port of server: ")),
-            str(input("Enter node name: ")),
-            bool(input("Debug? (True or False): ")))
-        node.main_loop()
+            # "192.168.43.200", 5555, "test", True)
+            # str(input("Enter IP address of server: ")),
+            "192.168.43.200", 5555,
+            # int(input("Enter port of server: ")),
+            str(input("Enter node name: ")), True)
+            # bool(input("Debug? (True or False): ")))
+
+        start_new_thread(node.has_timeout, ())
+        start_new_thread(node.main_loop, ())
     except Exception as e:
         print("There was an error initiating this node: {}".format(e))
