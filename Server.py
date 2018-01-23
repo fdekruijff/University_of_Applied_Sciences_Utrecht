@@ -82,7 +82,9 @@ class Server:
             client.barrier_open = json.loads(data)['barrier_open']
             self.change_barrier()
         elif data_header == "UUID":
-            return data
+            return str(data)
+        elif data_header == "GUI_UPDATE_REQ":
+            client.connection_handler.send(str(str(client.uuid) + ",CLIENT_DATA," + self.send_client_data()).encode('ascii'))
 
     def socket_write(self, conn, message: str, client_uuid: str) -> None:
         """
@@ -134,11 +136,10 @@ class Server:
         self.socket_write(connection, "UUID_REQ", "")
         try:
             data = connection.recv(2048).decode('utf-8').strip().split(',')
-            print (data)
-            return str(self.parse_socket_data(data[0], data[2], data[1]))
+            return str(self.parse_socket_data(data[0], data[1], data[2]))
 
         except ConnectionError or ConnectionResetError:
-            return "fout"
+            pass
 
     def clients_alive(self):
         """
@@ -167,7 +168,6 @@ if __name__ == '__main__':
             uuid = server.get_uuid(c)
             y = Node(i[0], i[1], uuid, c)
             server.client_list.append(y)
-            print("clientlist: {}".format(server.client_list))
             if "GUI" in uuid: y.is_gui = True
             server.socket_write(c, "REG_COMPLETE", uuid)
 
