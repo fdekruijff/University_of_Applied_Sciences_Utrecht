@@ -14,7 +14,7 @@ class Node:
         self.barrier_open = False
         self.online = False
         self.debug = False
-        self.connected_to_server = False
+        self.connected_to_server = False #TODO: deze verwijderen
         self.registered = False
         self.is_gui = False
         self.last_ping = 0.0

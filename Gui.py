@@ -31,6 +31,19 @@ class Gui(Node, tk.Frame):
 
         self.init_tkinter()
 
+        try:
+            self.client_socket.connect((self.ip_address, self.port))
+            self.connected_to_server = True
+        except socket.error as e:
+            if self.debug:
+                print("{} - Socket error {}".format(Gui.get_time(), e))
+            sys.exit()
+        finally:
+            if self.debug:
+                print(
+                    "{} - Successfully connect to IP:{}, PORT:{}".format(
+                        Gui.get_time(), self.ip_address, self.port))
+
         tk.Frame.__init__(self)
         super().__init__(ip_address, 5555, self.uuid, self.client_socket)
 
@@ -242,7 +255,7 @@ class Gui(Node, tk.Frame):
             sys.exit()
         data = data.decode('utf-8').strip().split(',')
         if self.debug:
-            print("{} - Client received: {}".format(Gui.get_time(), data))
+            print("{} - GUI received: {}".format(Gui.get_time(), data))
         if (data[0] == self.uuid) or (data[0] == "BROADCAST"):
             return self.parse_socket_data(data=data[1])
 
@@ -267,32 +280,21 @@ class Gui(Node, tk.Frame):
     def get_server_data(self):
         """ Sends a request to the server to get the latest client JSON data """
         while True:
-            if self.connected_to_server:
+            if self.registered:
                 self.socket_write("", "GUI_UPDATE_REQ")
                 time.sleep(2.5)
 
     def init_socket_read(self):
         """ socket_read() thread had to be called via another function to work """
-        try:
-            self.client_socket.connect((self.ip_address, self.port))
-            self.connected_to_server = True
-        except socket.error as e:
-            if self.debug:
-                print("{} - Socket error {}".format(Gui.get_time(), e))
-            sys.exit()
-        finally:
-            if self.debug:
-                print(
-                    "{} - Successfully connect to IP:{}, PORT:{}".format(
-                        Gui.get_time(), self.ip_address, self.port))
         while True:
+            self.debug = True
             self.socket_read()
-
 
 if __name__ == '__main__':
     try:
-        gui = Gui("192.168.137.110", 5555, True)
-        start_new_thread(gui.start, ())
+        gui = Gui("192.168.137.1", 5555, True)
+        start_new_thread(gui.get_server_data, ())
+        start_new_thread(gui.init_socket_read, ())
         gui.mainloop()
     except Exception as e:
         print("There was an error initiating this node: {}".format(e))
