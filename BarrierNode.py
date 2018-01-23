@@ -61,7 +61,7 @@ class BarrierNode(Node):
         elif data == "BARRIER_STATUS":
             self.socket_write(data_header="STATUS", data=str(self))
         elif data == "UUID_REQ":
-            self.socket_write(str(self.uuid), "UUID")
+            self.socket_write(data_header="UUID", data=str(self.uuid))
 
     def socket_write(self, data_header: str, data: str):
         """
@@ -112,15 +112,7 @@ class BarrierNode(Node):
 
 if __name__ == '__main__':
     try:
-        node = BarrierNode(
-            # "192.168.43.200", 5555, "test", True)
-            # str(input("Enter IP address of server: ")),
-            "192.168.43.200", 5555,
-            # int(input("Enter port of server: ")),
-            str(input("Enter node name: ")), True)
-            # bool(input("Debug? (True or False): ")))
-
-        start_new_thread(node.has_timeout, ())
-        start_new_thread(node.main_loop, ())
+        node = BarrierNode("192.168.137.110", 5555, "test", True)
+        node.main_loop()
     except Exception as e:
         print("There was an error initiating this node: {}".format(e))
