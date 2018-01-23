@@ -4,6 +4,7 @@ import tkinter.font
 import uuid
 import datetime
 import socket
+import time
 
 from tkinter import *
 import tkinter as tk
@@ -12,7 +13,7 @@ from Node import Node
 
 
 class Gui(Node, tk.Frame):
-    def __init__(self, ip_address: str, port: int):
+    def __init__(self, ip_address: str, port: int, debug: bool):
         self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.ip_address = ip_address
         self.port = port
@@ -20,7 +21,7 @@ class Gui(Node, tk.Frame):
         self.is_gui = True
         self.connected_to_server = False
         self.registered = False
-        self.debug = False
+        self.debug = debug
         self.last_ping = 0
         self.barrier_open = None
 
@@ -126,26 +127,31 @@ class Gui(Node, tk.Frame):
         self.label6 = Label(master=self.bovenframe, text="{} meter".format('3.5'), fg='white', bg='midnight blue', font=self.my_font2)
         self.label6.grid(row=2, column=1, sticky=W)
 
-
-    def main_loop(self):
+    def start(self):
         try:
             try:
                 self.client_socket.connect((self.ip_address, self.port))
                 self.connected_to_server = True
             except socket.error as e:
-                if self.debug: print("{} - Socket error {}".format(Gui.get_time(), e))
+                if self.debug:
+                    print("{} - Socket error {}".format(Gui.get_time(), e))
                 sys.exit()
             finally:
-                if self.debug: print(
+                if self.debug:
+                    print(
                     "{} - Successfully connect to IP:{}, PORT:{}".format(
                         Gui.get_time(), self.ip_address, self.port))
 
-            start_new_thread(self.has_timeout, ())
+            start_new_thread(self.get_server_data, ())
 
             while True:
+                self.debug = True
                 self.socket_read()
         finally:
             self.stop_client()
+
+    def stop_client(self):
+        pass
 
     @staticmethod
     def get_time():
@@ -198,6 +204,48 @@ class Gui(Node, tk.Frame):
 
                 index += 1
 
+    def parse_socket_data(self, data: str):
+        """ Handles socket data accordingly """
+        if data == "CLIENT_DATA":
+            print(data)
+        elif data == "UUID_REQ":
+            self.socket_write(data_header="UUID", data=str(self.uuid))
+        elif data == "REG_COMPLETE":
+            self.registered = True
+
+    def socket_write(self, data: str, data_header: str):
+        """
+            Writes a concatenation of the client UUID, data header and data to
+            the connection socket of this program instance
+        """
+        message = str(self.uuid) + "," + data_header + "," + data
+        if self.debug: print("{} - GUI send: {}".format(Gui.get_time(), message))
+
+        try:
+            self.client_socket.send(message.encode('ascii'))
+        except ConnectionResetError or ConnectionAbortedError:
+            if self.debug: print("{} - Connection has been terminated by the server.".format(self.get_time()))
+            exit()
+        self.client_socket.send(message.encode('ascii'))
+
+    def socket_read(self):
+        """
+            Listens to the connection socket of this program instance
+            and passes that data to the parse_socket_data() function
+        """
+        try:
+            data = self.client_socket.recv(4096)
+        except ConnectionResetError or ConnectionAbortedError or KeyboardInterrupt:
+            if self.debug:
+                print("{} - Connection has been terminated by the server.".format(Gui.get_time()))
+            self.stop_client()
+            sys.exit()
+        data = data.decode('utf-8').strip().split(',')
+        if self.debug:
+            print("{} - Client received: {}".format(Gui.get_time(), data))
+        if (data[0] == self.uuid) or (data[0] == "BROADCAST"):
+            return self.parse_socket_data(data=data[1])
+
     def button1(self):
         #haal_gegevens_op()
         self.toon_gegevens()
@@ -216,6 +264,35 @@ class Gui(Node, tk.Frame):
         #button3['state'] = 'disabled'
         #button2['state'] = 'active'
 
+    def get_server_data(self):
+        """ Sends a request to the server to get the latest client JSON data """
+        while True:
+            if self.connected_to_server:
+                self.socket_write("", "GUI_UPDATE_REQ")
+                time.sleep(2.5)
+
+    def init_socket_read(self):
+        """ socket_read() thread had to be called via another function to work """
+        try:
+            self.client_socket.connect((self.ip_address, self.port))
+            self.connected_to_server = True
+        except socket.error as e:
+            if self.debug:
+                print("{} - Socket error {}".format(Gui.get_time(), e))
+            sys.exit()
+        finally:
+            if self.debug:
+                print(
+                    "{} - Successfully connect to IP:{}, PORT:{}".format(
+                        Gui.get_time(), self.ip_address, self.port))
+        while True:
+            self.socket_read()
+
+
 if __name__ == '__main__':
-    gui = Gui('', 5555)
-    gui.mainloop()
+    try:
+        gui = Gui("192.168.137.110", 5555, True)
+        start_new_thread(gui.start, ())
+        gui.mainloop()
+    except Exception as e:
+        print("There was an error initiating this node: {}".format(e))
