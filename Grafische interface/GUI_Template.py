@@ -4,13 +4,6 @@ import tkinter.font
 import uuid
 import datetime
 import socket
-import matplotlib
-matplotlib.use('TkAgg')
-
-from numpy import arange, sin, pi
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-from matplotlib.figure import Figure
-
 
 from tkinter import *
 import tkinter as tk
@@ -47,41 +40,17 @@ class Gui(Node, tk.Frame):
         self.my_font2 = tkinter.font.Font(family="Courier", size=12)
 
         self.root.resizable(width=False, height=False)
-        self.root.minsize(width=1000, height=666)
-        self.root.maxsize(width=1000, height=666)
+        self.root.minsize(width=800, height=600)
+        self.root.maxsize(width=800, height=600)
         self.root.title('Status Waterkering')
 
         self.hoofdframe = Frame(master=self.root,  # Maakt hoofdframe aan
-                           background='DodgerBlue4',
+                           background='midnight blue',
                            highlightthickness=15,
                            highlightbackground='DodgerBlue4',
-                           highlightcolor='DodgerBlue4',
+                           highlightcolor='DodgerBlue4'
                            )
         self.hoofdframe.pack(side=LEFT, fill=BOTH, expand=True)
-
-        self.hoofdframe_boven = Frame(master=self.hoofdframe,# Maakt hoofdframe aan
-                                      background='midnight blue',
-                                      highlightthickness=4,
-                                      highlightbackground='black',
-                                      highlightcolor='black'
-
-
-                                      )
-        self.hoofdframe_boven.pack(side=TOP, fill=BOTH, pady=25)
-
-        self.hoofdframe_midden = Frame(master=self.hoofdframe,  # Maakt hoofdframe aan
-                                      background='midnight blue',
-                                      highlightthickness=4,
-                                      highlightbackground='black',
-                                      highlightcolor='black'
-
-                                      )
-        self.hoofdframe_midden.pack(side=TOP, fill=X)
-
-        self.hoofdframe_onder = Frame(master=self.hoofdframe,  # Maakt hoofdframe aan
-                           background='yellow',
-                           )
-        self.hoofdframe_onder.pack(side=BOTTOM, fill=X)
 
         self.resultaatframe = Frame(master=self.root,  # Maakt resultaatframe aan
                                width=250,
@@ -91,38 +60,22 @@ class Gui(Node, tk.Frame):
                                highlightbackground='DodgerBlue4',
                                highlightcolor='DodgerBlue4'
                                )
-        self.resultaatframe.pack(side=BOTTOM, fill=BOTH, expand=True)
+        self.resultaatframe.pack(side=BOTTOM)
 
-        self.scrollbar = Scrollbar(master=self.hoofdframe_onder, width=25)
+        self.scrollbar = Scrollbar(master=self.resultaatframe, width=25)
         self.scrollbar.pack(side=RIGHT, fill=Y)
 
-        self.button1 = Button(master=self.hoofdframe_onder, text='VERVERS GEGEVENS', command=self.button1)
+        self.button1 = Button(master=self.resultaatframe, text='VERVERS GEGEVENS', command=self.button1)
         self.button1.pack(side=BOTTOM, fill=X)
 
-        f = Figure(figsize=(5, 2), dpi=100)
-        a = f.add_subplot(111)
-        t = arange(0.0, 3.0, 0.01)
-        s = sin(2 * pi * t)
-
-        a.plot(t, s)
-        a.set_title('Actuele Waterstand')
-        a.set_xlabel('NAP in cm')
-        a.set_ylabel('NAP in cm')
-
-        # a tk.DrawingArea
-        self.canvas = FigureCanvasTkAgg(f, master=self.resultaatframe)
-        self.canvas.show()
-        self.canvas.get_tk_widget().pack(side=BOTTOM, fill=BOTH, expand=1)
-
-        self.canvas._tkcanvas.pack(side=BOTTOM, fill=BOTH, expand=1)
-
-        self.textVeld = Listbox(master=self.hoofdframe_onder,  # Listbox om resultaten csv weer te geven
+        self.textVeld = Listbox(master=self.resultaatframe,  # Listbox om resultaten csv weer te geven
                            bd=5,
+                           width=55,
                            font=self.my_font,
-                           height=15,
+                           height=26,
                            )
 
-        self.textVeld.pack(side=BOTTOM, fill=BOTH)
+        self.textVeld.pack(side=BOTTOM)
 
         self.bovenframe = Frame(master=self.root,  # Maakt resultaatframe aan
                            background='midnight blue',
@@ -130,22 +83,25 @@ class Gui(Node, tk.Frame):
                            highlightbackground='DodgerBlue4',
                            highlightcolor='DodgerBlue4'
                            )
-        self.bovenframe.pack(side=TOP, fill=X)
+        self.bovenframe.pack(side=TOP, fill=BOTH, expand=True)
 
-        self.textVeld.config(yscrollcommand=self.scrollbar.set)    #Link scrollbar aan listbox
+        self.textVeld.config(yscrollcommand=self.scrollbar.set)
         self.scrollbar.config(command=self.textVeld.yview)
 
-        self.label7 = Label(master=self.hoofdframe_boven, text="Raspberry 1:", bg='midnight blue', fg='white', font=self.my_font2, height=5)
+        self.label7 = Label(master=self.hoofdframe, text="Raspberry 1:", bg='midnight blue', fg='white', font=self.my_font2)
         self.label7.grid(row=0, column=0)
 
-        self.label8 = Label(master=self.hoofdframe_boven, text="Operationeel", bg='midnight blue', fg='white', font=self.my_font2)
-        self.label8.grid(row=0, column=1)
+        self.label8 = Label(master=self.hoofdframe, text="Operationeel", bg='midnight blue', fg='white', font=self.my_font2)
+        self.label8.grid(row=1, column=0)
 
-        self.label10 = Label(master=self.hoofdframe_midden, text='Raspberry 2:', bg='midnight blue', fg='white', font=self.my_font2, height=5)
-        self.label10.grid(row=0, column=0)
+        self.label9 = Label(master=self.hoofdframe, text='', bg='midnight blue', fg='white', font=self.my_font2)
+        self.label9.grid(row=2, column=0)
 
-        self.label11 = Label(master=self.hoofdframe_midden, text="Operationeel", fg='white', bg='midnight blue', font=self.my_font2)
-        self.label11.grid(row=0, column=1)
+        self.label10 = Label(master=self.hoofdframe, text='Raspberry 2:', bg='midnight blue', fg='white', font=self.my_font2)
+        self.label10.grid(row=3, column=0)
+
+        self.label11 = Label(master=self.hoofdframe, text="Operationeel", fg='white', bg='midnight blue', font=self.my_font2)
+        self.label11.grid(row=4, column=0)
 
         # button2 = Button(master=hoofdframe, text='Waterkering sluiten', bd=1, command=button2)
         # button2.grid(row=5, column=0)
@@ -168,7 +124,7 @@ class Gui(Node, tk.Frame):
         self.label5 = Label(master=self.bovenframe, text="Waterpeil:", bg='midnight blue', fg='white', font=self.my_font2)
         self.label5.grid(row=2, column=0)
 
-        self.label6 = Label(master=self.bovenframe, text='', fg='white', bg='midnight blue', font=self.my_font2)
+        self.label6 = Label(master=self.bovenframe, text="{} meter".format('3.5'), fg='white', bg='midnight blue', font=self.my_font2)
         self.label6.grid(row=2, column=1, sticky=W)
 
 
