@@ -178,5 +178,6 @@ if __name__ == '__main__':
             start_new_thread(server.socket_read, (c,))
             start_new_thread(server.clients_alive, ())
 
+
     except Exception as e:
         print("There was an error initiating this node: {}".format(e))
