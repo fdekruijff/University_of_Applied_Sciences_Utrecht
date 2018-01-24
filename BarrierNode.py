@@ -34,10 +34,12 @@ class BarrierNode(Node):
                 self.client_socket.connect((self.ip_address, self.port))
                 self.connected_to_server = True
             except socket.error as e:
-                if self.debug: print("{} - Socket error {}".format(BarrierNode.get_time(), e))
+                if self.debug:
+                    print("{} - Socket error {}".format(BarrierNode.get_time(), e))
                 sys.exit()
             finally:
-                if self.debug: print(
+                if self.debug:
+                    print(
                     "{} - Successfully connect to IP:{}, PORT:{}".format(
                         BarrierNode.get_time(), self.ip_address, self.port))
 
@@ -58,10 +60,12 @@ class BarrierNode(Node):
         if data == "IS_ALIVE":
             self.socket_write(data_header="IS_ALIVE", data="ACK")
             self.last_ping = time.time()
-        elif data == "BARRIER_STATUS":
+        elif data == "STATUS":
             self.socket_write(data_header="STATUS", data=str(self))
         elif data == "UUID_REQ":
             self.socket_write(data_header="UUID", data=str(self.uuid))
+        elif data == "REG_COMPLETE":
+            self.registered = True
 
     def socket_write(self, data_header: str, data: str):
         """
@@ -74,7 +78,8 @@ class BarrierNode(Node):
         try:
             self.client_socket.send(message.encode('ascii'))
         except ConnectionResetError or ConnectionAbortedError:
-            if self.debug: print("{} - Connection has been terminated by the server.".format(BarrierNode.get_time()))
+            if self.debug:
+                print("{} - Connection has been terminated by the server.".format(BarrierNode.get_time()))
             self.stop_client()
             sys.exit()
         self.client_socket.send(message.encode('ascii'))
@@ -87,9 +92,11 @@ class BarrierNode(Node):
     def has_timeout(self):
         """ Check if the client is no longer connected if it has not received socket data for more than 5.5 seconds """
         while True:
+            self.debug = True
             time.sleep(1)
             if time.time() - self.last_ping >= 5.5 and self.last_ping != 0:
-                if self.debug: print("There is no longer a connection to the server, exiting system")
+                if self.debug:
+                    print("There is no longer a connection to the server, exiting system")
                 self.stop_client()
                 sys.exit()
 
@@ -101,11 +108,13 @@ class BarrierNode(Node):
         try:
             data = self.client_socket.recv(4096)
         except ConnectionResetError or ConnectionAbortedError or KeyboardInterrupt:
-            if self.debug: print("{} - Connection has been terminated by the server.".format(BarrierNode.get_time()))
+            if self.debug:
+                print("{} - Connection has been terminated by the server.".format(BarrierNode.get_time()))
             self.stop_client()
             sys.exit()
         data = data.decode('utf-8').strip().split(',')
-        if self.debug: print("{} - Client received: {}".format(BarrierNode.get_time(), data))
+        if self.debug:
+            print("{} - Client received: {}".format(BarrierNode.get_time(), data))
         if (data[0] == self.uuid) or (data[0] == "BROADCAST"):
             return self.parse_socket_data(data=data[1])
 

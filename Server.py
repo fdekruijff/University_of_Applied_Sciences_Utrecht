@@ -84,7 +84,8 @@ class Server:
         elif data_header == "UUID":
             return str(data)
         elif data_header == "GUI_UPDATE_REQ":
-            client.connection_handler.send(str(str(client.uuid) + ",CLIENT_DATA," + self.send_client_data()).encode('ascii'))
+            self.socket_write(client.connection_handler, "CLIENT_DATA,{}".format(self.send_client_data()), client.uuid)
+            # client.connection_handler.send(str(str(client.uuid) + ",CLIENT_DATA," + self.send_client_data()).encode('ascii'))
 
     def socket_write(self, conn, message: str, client_uuid: str) -> None:
         """
