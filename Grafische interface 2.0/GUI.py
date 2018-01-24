@@ -5,6 +5,7 @@ import uuid
 import datetime
 import socket
 import matplotlib
+import json
 matplotlib.use('TkAgg')
 
 from numpy import arange, sin, pi
@@ -16,6 +17,31 @@ from tkinter import *
 import tkinter as tk
 from _thread import *
 from Node import Node
+
+
+def get_time():
+    """ Returns current time in format %d-%m-%Y %X """
+    return datetime.datetime.now().strftime('%d-%m-%Y %X')
+
+plot_x = []
+plot_y = []
+bestand_locatie = 'waterpeil.csv'
+
+with open(bestand_locatie, 'r') as myCSVFILE:  # Leest het geschreven csv bestand
+    reader = csv.reader(myCSVFILE, delimiter=';')
+    index = 2
+    myCSVFILE.readline()
+
+    for lijn in reader:  # Elke lijn met waardes komt in een tuple
+        datum = lijn[0][-5:]
+        waterstand = lijn[2]
+        if len(waterstand) != 0:
+            plot_x.append(datum)
+            plot_y.append(int(waterstand))# Sla de laatste ingevulde waarde van de waterstand op
+
+print(get_time())
+print(plot_x[-7:])
+print(plot_y[-7:])
 
 
 class Gui(Node, tk.Frame):
@@ -43,7 +69,7 @@ class Gui(Node, tk.Frame):
     def init_tkinter(self):
         self.root = Tk()
 
-        self.my_font = tkinter.font.Font(family="Courier", size=9)
+        self.my_font = tkinter.font.Font(family="Courier", size=10)
         self.my_font2 = tkinter.font.Font(family="Courier", size=12)
 
         self.root.resizable(width=False, height=False)
@@ -99,22 +125,22 @@ class Gui(Node, tk.Frame):
         self.button1 = Button(master=self.hoofdframe_onder, text='VERVERS GEGEVENS', command=self.button1)
         self.button1.pack(side=BOTTOM, fill=X)
 
-        f = Figure(figsize=(5, 2), dpi=100)
+        f = Figure(figsize=(5, 2), dpi=100) #Maakt de grafiek aan
         a = f.add_subplot(111)
-        t = arange(0.0, 3.0, 0.01)
-        s = sin(2 * pi * t)
+        t = plot_x[-7:]                     #Toon de laatst gemeten waterstand van het afgelopen uur
+        s = plot_y[-7:]
 
         a.plot(t, s)
-        a.set_title('Actuele Waterstand')
-        a.set_xlabel('NAP in cm')
-        a.set_ylabel('NAP in cm')
+        a.set_title('Actuele Waterstand ' + get_time())
+        a.set_xlabel('Tijdstip (Afgelopen uur)')
+        a.set_ylabel('Verschil NAP in cm')
 
         # a tk.DrawingArea
         self.canvas = FigureCanvasTkAgg(f, master=self.resultaatframe)
         self.canvas.show()
-        self.canvas.get_tk_widget().pack(side=BOTTOM, fill=BOTH, expand=1)
+        self.canvas.get_tk_widget().pack(side=RIGHT, fill=BOTH, expand=True)
 
-        self.canvas._tkcanvas.pack(side=BOTTOM, fill=BOTH, expand=1)
+        self.canvas._tkcanvas.pack(side=BOTTOM, fill=BOTH, expand=True)
 
         self.textVeld = Listbox(master=self.hoofdframe_onder,  # Listbox om resultaten csv weer te geven
                            bd=5,
@@ -138,13 +164,13 @@ class Gui(Node, tk.Frame):
         self.label7 = Label(master=self.hoofdframe_boven, text="Raspberry 1:", bg='midnight blue', fg='white', font=self.my_font2, height=5)
         self.label7.grid(row=0, column=0)
 
-        self.label8 = Label(master=self.hoofdframe_boven, text="Operationeel", bg='midnight blue', fg='white', font=self.my_font2)
+        self.label8 = Label(master=self.hoofdframe_boven, text="Operationeel", bg='midnight blue', fg='green', font=self.my_font2)
         self.label8.grid(row=0, column=1)
 
         self.label10 = Label(master=self.hoofdframe_midden, text='Raspberry 2:', bg='midnight blue', fg='white', font=self.my_font2, height=5)
         self.label10.grid(row=0, column=0)
 
-        self.label11 = Label(master=self.hoofdframe_midden, text="Operationeel", fg='white', bg='midnight blue', font=self.my_font2)
+        self.label11 = Label(master=self.hoofdframe_midden, text="Inactief", fg='red', bg='midnight blue', font=self.my_font2)
         self.label11.grid(row=0, column=1)
 
         # button2 = Button(master=hoofdframe, text='Waterkering sluiten', bd=1, command=button2)
@@ -193,9 +219,6 @@ class Gui(Node, tk.Frame):
             self.stop_client()
 
     @staticmethod
-    def get_time():
-        """ Returns current time in format %d-%m-%Y %X """
-        return datetime.datetime.now().strftime('%d-%m-%Y %X')
 
     def haal_gegevens_op(self):
         "Haalt gegevens op en schrijft dit weg in een csv bestand"
@@ -249,10 +272,13 @@ class Gui(Node, tk.Frame):
         return laatste_waterstand
 
     def button1(self):
-        #self.haal_gegevens_op()
-        waterpeil = self.toon_gegevens() + 'cm'
-        self.toon_gegevens()
-        self.label6['text'] = waterpeil
+        self.textVeld.delete(0, END)        #Leeg het textveld
+        self.lees_json()                    #Lees de json file en schrijf weg in de listbox
+        self.haal_gegevens_op(self)
+        waterpeil = plot_y[-1]
+        #self.toon_gegevens()
+        self.label6['text'] = str(waterpeil) + ' cm'
+        #self.canvas['plot']= [1,2,3,4,5,6,7], [3,2,5,8,2,6,1]
 
     def button2(self):
         'Kering sluiten'
@@ -267,6 +293,20 @@ class Gui(Node, tk.Frame):
         self.label4['text'] = 'OPEN'
         #button3['state'] = 'disabled'
         #button2['state'] = 'active'
+
+    def lees_json(self):
+        json_data = open('socket_gegevens.json').read()
+        data = json.loads(json_data)
+
+        self.textVeld.insert(0, '{:19}{:15}{:21}'.format('IP adres', '|Poort','|UUID'))
+        self.textVeld.insert(1, '{:19}|{:14}|{:20}'.format('', '', ''))
+
+        self.textVeld.insert(2, '{:19}|{:14}|{:20}'.format(data['ip_address'], data['port'], data['uuid'] ))
+
+
+
+
+
 
 if __name__ == '__main__':
     gui = Gui('', 5555)
