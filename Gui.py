@@ -292,7 +292,7 @@ class Gui(Node, tk.Frame):
 
 if __name__ == '__main__':
     try:
-        gui = Gui("192.168.137.1", 5555, True)
+        gui = Gui("172.0.0.1", 5555, True)
         start_new_thread(gui.get_server_data, ())
         start_new_thread(gui.init_socket_read, ())
         gui.mainloop()
