@@ -6,18 +6,18 @@
 
 
 class Node:
-    def __init__(self, ip_address: str, port: int, uuid: str, connection_handler):
+    def __init__(self, ip_address: str, port: int, uuid: str, connection_handler, barrier_open=False, online=False,
+                 debug=False, registered=False, is_gui=False, last_ping=0.0):
         self.ip_address = ip_address
         self.port = port
         self.connection_handler = connection_handler
         self.uuid = uuid
-        self.barrier_open = False
-        self.online = False
-        self.debug = False
-        self.connected_to_server = False #TODO: deze verwijderen
-        self.registered = False
-        self.is_gui = False
-        self.last_ping = 0.0
+        self.barrier_open = barrier_open
+        self.online = online
+        self.debug = debug
+        self.registered = registered
+        self.is_gui = is_gui
+        self.last_ping = last_ping
 
     def __str__(self):
         """ Returns object parameters in JSON string format for socket data transfer """
@@ -26,15 +26,15 @@ class Node:
             try:
                 list(self.__dict__.keys())[x + 1] = list(self.__dict__.keys())[x + 1]
                 return_string += (
-                    "\"" +
-                    str(list(self.__dict__.keys())[x]) + "\":\"" +
-                    str(self.__dict__.get(list(self.__dict__.keys())[x])) +
-                    "\","
+                        "\"" +
+                        str(list(self.__dict__.keys())[x]) + "\":\"" +
+                        str(self.__dict__.get(list(self.__dict__.keys())[x])) +
+                        "\","
                 )
             except IndexError:
                 return_string += (
-                    "\"" +
-                    str(list(self.__dict__.keys())[x]) + "\":\"" +
-                    str(self.__dict__.get(list(self.__dict__.keys())[x]))
+                        "\"" +
+                        str(list(self.__dict__.keys())[x]) + "\":\"" +
+                        str(self.__dict__.get(list(self.__dict__.keys())[x]))
                 )
         return return_string + "\"}"

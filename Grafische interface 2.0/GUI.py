@@ -77,7 +77,7 @@ class Gui(Node, tk.Frame):
         self.root.maxsize(width=1000, height=666)
         self.root.title('Status Waterkering')
 
-        self.hoofdframe = Frame(master=self.root,  # Maakt hoofdframe aan
+        self.hoofdframe = Frame(master=self.root,  # Maakt hoofd_frame aan
                            background='DodgerBlue4',
                            highlightthickness=15,
                            highlightbackground='DodgerBlue4',
@@ -85,7 +85,7 @@ class Gui(Node, tk.Frame):
                            )
         self.hoofdframe.pack(side=LEFT, fill=BOTH, expand=True)
 
-        self.hoofdframe_boven = Frame(master=self.hoofdframe,# Maakt hoofdframe aan
+        self.hoofdframe_boven = Frame(master=self.hoofdframe,# Maakt hoofd_frame aan
                                       background='midnight blue',
                                       highlightthickness=4,
                                       highlightbackground='black',
@@ -95,7 +95,7 @@ class Gui(Node, tk.Frame):
                                       )
         self.hoofdframe_boven.pack(side=TOP, fill=BOTH, pady=25)
 
-        self.hoofdframe_midden = Frame(master=self.hoofdframe,  # Maakt hoofdframe aan
+        self.hoofdframe_midden = Frame(master=self.hoofdframe,  # Maakt hoofd_frame aan
                                       background='midnight blue',
                                       highlightthickness=4,
                                       highlightbackground='black',
@@ -104,12 +104,12 @@ class Gui(Node, tk.Frame):
                                       )
         self.hoofdframe_midden.pack(side=TOP, fill=X)
 
-        self.hoofdframe_onder = Frame(master=self.hoofdframe,  # Maakt hoofdframe aan
+        self.hoofdframe_onder = Frame(master=self.hoofdframe,  # Maakt hoofd_frame aan
                            background='yellow',
                            )
         self.hoofdframe_onder.pack(side=BOTTOM, fill=X)
 
-        self.resultaatframe = Frame(master=self.root,  # Maakt resultaatframe aan
+        self.resultaatframe = Frame(master=self.root,  # Maakt resultaat_frame aan
                                width=250,
                                height=250,
                                background='midnight blue',
@@ -148,7 +148,7 @@ class Gui(Node, tk.Frame):
 
         self.textVeld.pack(side=BOTTOM, fill=BOTH)
 
-        self.bovenframe = Frame(master=self.root,  # Maakt resultaatframe aan
+        self.bovenframe = Frame(master=self.root,  # Maakt resultaat_frame aan
                            background='midnight blue',
                            highlightthickness=15,
                            highlightbackground='DodgerBlue4',
@@ -171,10 +171,10 @@ class Gui(Node, tk.Frame):
         self.label11 = Label(master=self.hoofdframe_midden, text="Inactief", fg='red', bg='midnight blue', font=self.my_font2)
         self.label11.grid(row=0, column=1)
 
-        # button2 = Button(master=hoofdframe, text='Waterkering sluiten', bd=1, command=button2)
+        # button2 = Button(master=hoofd_frame, text='Waterkering sluiten', bd=1, command=button2)
         # button2.grid(row=5, column=0)
 
-        # button3 = Button(master=hoofdframe, text='Waterkering openen', bd=1, command=button3, state='disabled')
+        # button3 = Button(master=hoofd_frame, text='Waterkering openen', bd=1, command=button3, state='disabled')
         # button3.grid(row=5, column=1)
 
         self.label1 = Label(master=self.bovenframe, text="Status:", bg='midnight blue', fg='white', font=self.my_font2)

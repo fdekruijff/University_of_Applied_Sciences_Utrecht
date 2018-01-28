@@ -124,7 +124,7 @@ class Server:
                 if self.debug: print("{} - Cannot connect to client".format(Server.get_time()))
                 for client in self.client_list:
                     try:
-                        self.socket_write(client.connection_handler, "", "")
+                        self.socket_write(client.connection_handler, "IS_ALIVE", client.uuid)
                     except Exception:
                         if self.debug: print(
                             "{} - Client with UUID {} has lost connection and has been unregistered.".format(
