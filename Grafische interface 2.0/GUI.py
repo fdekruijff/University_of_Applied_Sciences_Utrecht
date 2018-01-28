@@ -129,12 +129,10 @@ class Gui(Node, tk.Frame):
         a = f.add_subplot(111)
         t = plot_x[-7:]                     #Toon de laatst gemeten waterstand van het afgelopen uur
         s = plot_y[-7:]
-
         a.plot(t, s)
         a.set_title('Actuele Waterstand ' + get_time())
         a.set_xlabel('Tijdstip (Afgelopen uur)')
-        a.set_ylabel('Verschil NAP in cm')
-
+        a.set_ylabel('Verschil NAP in cm', fontsize=10)
         # a tk.DrawingArea
         self.canvas = FigureCanvasTkAgg(f, master=self.resultaatframe)
         self.canvas.show()
@@ -164,7 +162,7 @@ class Gui(Node, tk.Frame):
         self.label7 = Label(master=self.hoofdframe_boven, text="Raspberry 1:", bg='midnight blue', fg='white', font=self.my_font2, height=5)
         self.label7.grid(row=0, column=0)
 
-        self.label8 = Label(master=self.hoofdframe_boven, text="Operationeel", bg='midnight blue', fg='green', font=self.my_font2)
+        self.label8 = Label(master=self.hoofdframe_boven, text="Actief", bg='midnight blue', fg='green', font=self.my_font2)
         self.label8.grid(row=0, column=1)
 
         self.label10 = Label(master=self.hoofdframe_midden, text='Raspberry 2:', bg='midnight blue', fg='white', font=self.my_font2, height=5)
