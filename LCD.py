@@ -25,12 +25,54 @@ LCD_LINE_2 = 0xC0  # LCD RAM address for the 2nd line
 E_PULSE = 0.0005
 E_DELAY = 0.0005
 
+def kering_status():
+    #vraag status op
+
+    #status
+    keringstatus = True
+    if keringstatus == True:
+        return "kering is dicht"
+    else:
+        return "kering is open"
+
+def status_rasbberry(x):
+    if x == 1:
+        input_value = GPIO.input(16)
+        if input_value == True:
+            return 'PI 1  actief'
+        elif input_value == False:
+            return 'PI 1 Inactief'
+    elif x == 2:
+        input_value = GPIO.input(12)
+        if input_value == True:
+            return 'PI 2  actief'
+        elif input_value == False:
+            return 'PI 2 Inactief'
+
 def switch_status():
-    input_value = GPIO.input(21)
-    if input_value == True:
-        return True
-    elif input_value == False:
-        return False
+    input_value21 = GPIO.input(21)
+    input_value20 = GPIO.input(20)
+
+    if input_value21 == True:
+        return 0
+    elif input_value20 == True:
+        return 1
+    else:
+        return 2
+
+
+def waterhoogte():
+    hoogte = '10'
+    return hoogte
+
+def has_timeout():
+    """ Check if the client is no longer connected if it has not received socket data for more than 5.5 seconds """
+    while True:
+        time.sleep(10)
+        if time.time() - last_ping >= 5.5 and last_ping != 0:
+            if debug: print("There is no longer a connection to the server, exiting system")
+            global LCD_text_2
+            LCD_text_2 = ' Not Connected'
 
 def main():
     # Main program block
@@ -43,6 +85,9 @@ def main():
     GPIO.setup(LCD_D6, GPIO.OUT)  # DB6
     GPIO.setup(LCD_D7, GPIO.OUT)  # DB7
     GPIO.setup(21, GPIO.IN)       # schakelaar
+    GPIO.setup(20, GPIO.IN)       # schakelaar
+    GPIO.setup(16, GPIO.IN)       #raspberry 1
+    GPIO.setup(12, GPIO.IN)       #raspberry 2
 
     # Initialise display
     lcd_init()
@@ -50,29 +95,37 @@ def main():
 
     while True:
         #status raspberry
-        if switch_status() == False:
+        if switch_status() == 0:
             time.sleep(0.5)
-            if switch_status() == False:
-                status_loop = True
+            if switch_status() == 0:
                 while True:
-                    lcd_string("Raspberry 1 ", LCD_LINE_1)
-                    lcd_string("Raspberry 2", LCD_LINE_2)
-                    if switch_status() == True:
+                    lcd_string(status_rasbberry(1), LCD_LINE_1)
+                    lcd_string(status_rasbberry(2), LCD_LINE_2)
+                    if switch_status() != 0:
                         time.sleep(0.5)
-                        if switch_status() == True:
-                            break
-        #status pijl
-        elif switch_status() == True:
-            time.sleep(0.5)
-            if switch_status() == True:
-                while True:
-                    lcd_string("Water niveau", LCD_LINE_1)
-                    lcd_string("10 CM", LCD_LINE_2)
-                    if switch_status() == False:
-                        time.sleep(0.5)
-                        if switch_status() == False:
+                        if switch_status() != 0:
                             break
 
+        #status pijl
+        elif switch_status() == 1:
+            time.sleep(0.5)
+            if switch_status() == 1:
+                while True:
+                    lcd_string("Water niveau", LCD_LINE_1)
+                    lcd_string(waterhoogte(), LCD_LINE_2)
+                    if switch_status() != 1:
+                        time.sleep(0.5)
+                        if switch_status() != 1:
+                            break
+        elif switch_status() == 2:
+            time.sleep(0.5)
+            if switch_status() == 2:
+                lcd_string(kering_status(), LCD_LINE_1)
+                lcd_string("", LCD_LINE_2)
+                if switch_status() != 2:
+                    time.sleep(0.5)
+                    if switch_status() != 2:
+                        break
 
 
 def lcd_init():
