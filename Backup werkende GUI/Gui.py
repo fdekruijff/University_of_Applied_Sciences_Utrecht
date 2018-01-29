@@ -68,7 +68,7 @@ class Gui(Node, tk.Frame):
         self.graph_x = []
         self.graph_y = []
         self.test = 0
-        self.bestand_locatie = 'waterpeil.csv'
+        self.bestand_locatie = 'Waterpeil.csv'
         self.csv_url = 'https://waterberichtgeving.rws.nl/wbviewer/maak_grafiek.php' \
                        '?loc=HOEK&set=eindverwachting&nummer=1&format=csv'
 
@@ -92,6 +92,7 @@ class Gui(Node, tk.Frame):
 
     def init_tkinter(self):
         # TODO: This should work without writing to a file first.
+        self.haal_gegevens_op()
         self.lees_gegevens()
 
         self.font_size_10.configure(family="Courier", size=10)
@@ -386,7 +387,7 @@ class Gui(Node, tk.Frame):
         self.canvas.show()
 
     def update_gui(self):
-        """Function to update labels and the listbox of the GUI"""
+        """Function to update labels in gui"""
         self.populate_client_list()
         self.node_1_status_label['text'] = str(self.online)
         self.node_2_status_label['text'] = str(self.online)
