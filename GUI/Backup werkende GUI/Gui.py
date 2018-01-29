@@ -67,8 +67,8 @@ class Gui(Node, tk.Frame):
         self.client_list = []
         self.graph_x = []
         self.graph_y = []
-        self.last_data = None
-        self.bestand_locatie = 'waterpeil.csv'
+        self.test = 0
+        self.bestand_locatie = 'Waterpeil.csv'
         self.csv_url = 'https://waterberichtgeving.rws.nl/wbviewer/maak_grafiek.php' \
                        '?loc=HOEK&set=eindverwachting&nummer=1&format=csv'
 
@@ -92,6 +92,7 @@ class Gui(Node, tk.Frame):
 
     def init_tkinter(self):
         # TODO: This should work without writing to a file first.
+        self.haal_gegevens_op()
         self.lees_gegevens()
 
         self.font_size_10.configure(family="Courier", size=10)
@@ -232,6 +233,7 @@ class Gui(Node, tk.Frame):
             for lijn in lijst:
                 schrijven.writerow(lijn)
 
+
     def lees_gegevens(self):
         self.graph_x = []
         self.graph_y = []
@@ -332,11 +334,7 @@ class Gui(Node, tk.Frame):
             and passes that data to the parse_socket_data() function
         """
         try:
-            data = self.connection_handler.recv(8192)
-            if data == self.last_data:
-                # Don't do anything if data is identical
-                return
-            self.last_data = data
+            data = self.connection_handler.recv(4096)
         except ConnectionResetError or ConnectionAbortedError or KeyboardInterrupt:
             if self.debug:
                 print("{} - Connection has been terminated by the server.".format(Gui.get_time()))
@@ -389,7 +387,7 @@ class Gui(Node, tk.Frame):
         self.canvas.show()
 
     def update_gui(self):
-        """Function to update labels and the listbox of the GUI"""
+        """Function to update labels in gui"""
         self.populate_client_list()
         self.node_1_status_label['text'] = str(self.online)
         self.node_2_status_label['text'] = str(self.online)

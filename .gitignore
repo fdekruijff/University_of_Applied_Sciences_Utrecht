@@ -1,2 +1,4 @@
 .idea/
 __pycache__/
+socket_gegevens.json
+Waterpeil.csv

@@ -106,7 +106,7 @@ class BarrierNode(Node):
             and passes that data to the parse_socket_data() function
         """
         try:
-            data = self.client_socket.recv(4096)
+            data = self.client_socket.recv(8192)
         except ConnectionResetError or ConnectionAbortedError or KeyboardInterrupt:
             if self.debug:
                 print("{} - Connection has been terminated by the server.".format(BarrierNode.get_time()))

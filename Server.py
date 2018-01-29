@@ -5,9 +5,9 @@
 """
 
 import datetime
+import json
 import socket
 import sys
-import json
 import time
 from _thread import *
 
@@ -26,7 +26,7 @@ class Server:
         self.operational = True
 
     @staticmethod
-    def get_time():
+    def get_time() -> str:
         """ Returns current time in format %d-%m-%Y %X """
         return datetime.datetime.now().strftime('%d-%m-%Y %X')
 
@@ -85,7 +85,6 @@ class Server:
             return str(data)
         elif data_header == "GUI_UPDATE_REQ":
             self.socket_write(client.connection_handler, "CLIENT_DATA,{}".format(self.send_client_data()), client.uuid)
-            # client.connection_handler.send(str(str(client.uuid) + ",CLIENT_DATA," + self.send_client_data()).encode('ascii'))
 
     def socket_write(self, conn, message: str, client_uuid: str) -> None:
         """
@@ -102,7 +101,7 @@ class Server:
         if self.debug: print("{} - Server send: {}".format(Server.get_time(), message))
         try:
             conn.send(message.encode('ascii'))
-        except:
+        except ConnectionError:
             self.remove_client(client_uuid)
 
     def socket_read(self, connection):
@@ -112,24 +111,25 @@ class Server:
         """
         while True:
             try:
-                data = connection.recv(4096).decode('utf-8').strip().split(',')
+                data = connection.recv(8192).decode('utf-8').strip().split(',')
                 if self.debug: print("{} - Server received: {}".format(Server.get_time(), data))
                 try:
+                    # Check if all data indexes are available
                     if data[0] or data[1] or data[2]:
                         pass
                 except IndexError:
                     continue
                 self.parse_socket_data(data[0], data[1], data[2])
-            except Exception:
-                if self.debug: print("{} - Cannot connect to client".format(Server.get_time()))
+            except ConnectionError:
                 for client in self.client_list:
                     try:
                         self.socket_write(client.connection_handler, "IS_ALIVE", client.uuid)
-                    except Exception:
-                        if self.debug: print(
-                            "{} - Client with UUID {} has lost connection and has been unregistered.".format(
-                                Server.get_time(), client.uuid))
+                    except ConnectionResetError:
                         self.remove_client(client.uuid)
+                        if self.debug:
+                            print("{} - Client with UUID {} has lost connection and has been unregistered.".format(
+                                Server.get_time(), client.uuid)
+                            )
                 return
 
     def get_uuid(self, connection) -> str:
@@ -153,7 +153,7 @@ class Server:
                     if "GUI" not in client.uuid:
                         self.socket_write(client.connection_handler, "IS_ALIVE", client.uuid)
                         self.socket_write(client.connection_handler, "STATUS", client.uuid)
-                except Exception:
+                except ConnectionError or ConnectionResetError:
                     self.remove_client(uuid)
             time.sleep(2.5)
 
