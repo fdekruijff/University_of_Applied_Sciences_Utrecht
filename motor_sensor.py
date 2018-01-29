@@ -9,7 +9,7 @@ GPIO.setmode(GPIO.BCM)
 # Zet waarschuwingen uit.
 GPIO.setwarnings(False)
 #afstand 4096 is 1 rondje op de stapmotor
-afstand = 4096
+afstand = 5096
 status = 'open'
 
 #GPIO comminucatie
@@ -23,6 +23,8 @@ GPIO_ECHO = 3
 # set GPIO direction (IN / OUT)
 GPIO.setup(GPIO_TRIGGER, GPIO.OUT)
 GPIO.setup(GPIO_ECHO, GPIO.IN)
+
+print ('GPIO setup done')
 
 #meet afstand van sonic sensor
 def distance():
@@ -93,7 +95,6 @@ def sluitkering_motor():
     StepCount = StepCount2
     # afstand
     # 4096 is 1 rondje op de stapmotor
-    afstand = 4096
     status = 'open'
     StepCounter = 0
     for rond in range(0, afstand):
@@ -113,6 +114,8 @@ def sluitkering_motor():
 
         # Wacht voor de volgende stap (lager = snellere draaisnelheid)
         sleep(.001)
+
+    print ('kering is gesloten')
 
 #opent de kering
 def openkering_motor():
@@ -173,24 +176,28 @@ def openkering_motor():
 
         # Wacht voor de volgende stap (lager = snellere draaisnelheid)
         sleep(0.001)
+    print ('kering is geopend ')
 
-#main loop
-try:
-    while True:
-        dist = distance()
-        if dist <= 10 and status == 'open':
-            print ("Sluit waterkering")
-            sluitkering_motor()
-            status = "dicht"
-        elif dist > 10 and status == 'dicht':
-            print ("Open waterkering")
-            openkering_motor()
-            status = "open"
-        else:
-            print ("Gemeten afstand = %.1f cm" % dist)
-        time.sleep(1)
+def Main_loop_kering():
+    #main loop
+    try:
+        while True:
+            dist = distance()
+            if dist <= 10 and status == 'open':
+                print ("Sluit waterkering")
+                sluitkering_motor()
+                status = "dicht"
+            elif dist > 10 and status == 'dicht':
+                print ("Open waterkering")
+                openkering_motor()
+                status = "open"
+            else:
+                print ("Gemeten afstand = %.1f cm" % dist)
+            time.sleep(1)
 
 
-except KeyboardInterrupt:
-    # GPIO netjes afsluiten
-    GPIO.cleanup()
+    except KeyboardInterrupt:
+        # GPIO netjes afsluiten
+        GPIO.cleanup()
+
+Main_loop_kering()
