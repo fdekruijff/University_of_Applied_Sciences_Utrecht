@@ -9,9 +9,11 @@ import time
 import tkinter as tk
 import tkinter.font
 import uuid
+import threading
+from threading import *
 from _thread import *
 from tkinter import *
-from win32api import GetSystemMetrics
+#from win32api import GetSystemMetrics
 
 import requests
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
@@ -88,6 +90,17 @@ class Gui(Node, tk.Frame):
         tk.Frame.__init__(self)
 
     def init_tkinter(self):
+        # TODO: This should work without writing to a file first.
+        with open(self.bestand_locatie, 'r') as myCSVFILE:  # Leest het geschreven csv bestand
+            reader = csv.reader(myCSVFILE, delimiter=';')
+            myCSVFILE.readline()
+            for lijn in reader:  # Elke lijn met waardes komt in een tuple
+                datum = lijn[0][-5:]
+                waterstand = lijn[2]
+                if len(waterstand) != 0:
+                    self.graph_x.append(datum)
+                    self.graph_y.append(int(waterstand))  # Sla de laatste ingevulde waarde van de waterstand op
+
         self.font_size_10.configure(family="Courier", size=10)
         self.font_size_12.configure(family="Courier", size=12)
 
@@ -96,8 +109,8 @@ class Gui(Node, tk.Frame):
         self.root.geometry("{}x{}+{}+{}".format(
             self.width,
             self.height,
-            int(math.floor(GetSystemMetrics(0)) / 2 - self.width / 2),
-            int(math.floor(GetSystemMetrics(1)) / 2 - self.height / 2) - 50)
+            0,#int(math.floor(GetSystemMetrics(0)) / 2 - self.width / 2),
+            0)#int(math.floor(GetSystemMetrics(1)) / 2 - self.height / 2) - 50)
         )
 
         self.hoofd_frame.pack(side=LEFT, fill=BOTH, expand=True)
@@ -196,16 +209,6 @@ class Gui(Node, tk.Frame):
         self.water_level_label.configure(text="Waterpeil:", bg='midnight blue', fg='white', font=self.font_size_12)
         self.water_level_value_label.configure(text='', fg='white', bg='midnight blue', font=self.font_size_12)
 
-        # TODO: This should work without writing to a file first.
-        with open(self.bestand_locatie, 'r') as myCSVFILE:  # Leest het geschreven csv bestand
-            reader = csv.reader(myCSVFILE, delimiter=';')
-            myCSVFILE.readline()
-            for lijn in reader:  # Elke lijn met waardes komt in een tuple
-                datum = lijn[0][-5:]
-                waterstand = lijn[2]
-                if len(waterstand) != 0:
-                    self.graph_x.append(datum)
-                    self.graph_y.append(int(waterstand))  # Sla de laatste ingevulde waarde van de waterstand op
 
     @staticmethod
     def get_time():
@@ -359,12 +362,13 @@ class Gui(Node, tk.Frame):
         """  """
         self.populate_client_list()
         self.haal_gegevens_op()
-        self.sub_plot.plot(self.graph_x[-35:], self.graph_y[-35:])
+        #self.sub_plot.plot(self.graph_x[-35:], self.graph_y[-35:])
         self.water_level_value_label['text'] = str(self.graph_y[-1]) + ' cm'
 
     def update_gui_handler(self):
         """ Recursively calls update function every x seconds """
         self.update_gui()
+        threading.Timer(5.0, self.update_gui_handler).start()
         self.root.after(4500, self.update_gui_handler)
 
     def populate_client_list(self):
@@ -386,7 +390,9 @@ if __name__ == '__main__':
         gui = Gui("127.0.0.1", 5555, True)
         start_new_thread(gui.get_server_data, ())
         start_new_thread(gui.init_socket_read, ())
-        gui.update_gui_handler()
+        #gui.haal_gegevens_op()
+        #gui.update_gui_handler()
         gui.mainloop()
+
     except Exception as e:
         print("There was an error initiating this node: {}".format(e))
