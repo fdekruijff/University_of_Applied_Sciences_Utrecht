@@ -10,10 +10,10 @@ import socket
 import sys
 import time
 
-import RPi.GPIO as GPIO
-
 from _thread import *
 from Node import Node
+
+import RPi.GPIO as GPIO
 
 
 class Server:
@@ -48,7 +48,7 @@ class Server:
         self.E_DELAY = 0.0005
 
     @staticmethod
-    def get_time()-> str:
+    def get_time() -> str:
         """ Returns current time in format %d-%m-%Y %X """
         return datetime.datetime.now().strftime('%d-%m-%Y %X')
 
@@ -100,7 +100,7 @@ class Server:
                     elif Server.switch_status() == 2:
                         time.sleep(0.5)
                         if Server.switch_status() == 2:
-                            self.lcd_string("Kering: open", self.LCD_LINE_1)
+                            self.lcd_string("Kering: {}".format(self.lcd_kering_status()), self.LCD_LINE_1)
                             self.lcd_string("", self.LCD_LINE_2)
                             if Server.switch_status() != 2:
                                 time.sleep(0.5)
@@ -108,10 +108,10 @@ class Server:
                                     break
             except KeyboardInterrupt:
                 pass
-            #finally:
-                # self.lcd_byte(0x01, self.LCD_CMD)
-                # self.lcd_string("Goodbye!", self.LCD_LINE_1)
-                # GPIO.cleanup()
+            # finally:
+            # self.lcd_byte(0x01, self.LCD_CMD)
+            # self.lcd_string("Goodbye!", self.LCD_LINE_1)
+            # GPIO.cleanup()
 
     def init_socket(self) -> None:
         """ Initialises server socket """
@@ -144,7 +144,7 @@ class Server:
                     Server.get_time(), client_uuid))
 
     def send_client_data(self) -> str:
-        """ Formats ClientObject parameter JSON data for all clients in client_list """
+        """ Formats Node objects toJSON data for all clients in client_list """
         return_string = "{"
         for client in self.client_list:
             return_string = return_string + str(client) + ','
@@ -158,8 +158,8 @@ class Server:
         if data_header == "IS_ALIVE" and data == "ACK":
             client.last_ping = time.time()
         elif data_header == "BARRIER_STATUS":
-            client.barrier_open = json.loads(data)['barrier_open']
-            self.change_barrier()
+            client.barrier_open = bool(data)
+            self.barrier_open = bool(data)
         elif data_header == "UUID":
             return str(data)
         elif data_header == "GUI_UPDATE_REQ":
@@ -204,6 +204,9 @@ class Server:
                     try:
                         self.socket_write(client.connection_handler, "IS_ALIVE", client.uuid)
                     except ConnectionResetError:
+                        if "NODE" in client.uuid:
+                            client.online = False
+                            return
                         self.remove_client(client.uuid)
                         if self.debug:
                             print("{} - Client with UUID {} has lost connection and has been unregistered.".format(
@@ -232,28 +235,20 @@ class Server:
                     if "GUI" not in client.uuid:
                         self.socket_write(client.connection_handler, "IS_ALIVE", client.uuid)
                         self.socket_write(client.connection_handler, "STATUS", client.uuid)
+                        self.socket_write(client.connection_handler, "BARRIER_STATUS", client.uuid)
                 except ConnectionError or ConnectionResetError:
                     self.remove_client(uuid)
             time.sleep(2.5)
 
     def lcd_kering_status(self) -> str:
         if self.barrier_open:
-            return "kering is dicht"
+            return "| Kering is geopend"
         else:
-            return "kering is open"
+            return "| Kering is geloten"
 
     def status_rasbberry(self, x) -> str:
         # TODO: Moet werken met sockets en niet met GPIO
-        if x:
-            input_value = GPIO.input(16)
-            if input_value:
-                return 'PI 1  actief'
-            return 'PI 1 Inactief'
-        elif not x:
-            input_value = GPIO.input(12)
-            if input_value:
-                return 'PI 2  actief'
-            return 'PI 2 Inactief'
+        pass
 
     @staticmethod
     def switch_status() -> int:
@@ -317,7 +312,7 @@ class Server:
         self.lcd_toggle_enable()
 
     def lcd_toggle_enable(self):
-        # Toggle enable
+        """ Toggle enable """
         time.sleep(self.E_DELAY)
         GPIO.output(self.LCD_E, True)
         time.sleep(self.E_PULSE)
@@ -325,27 +320,38 @@ class Server:
         time.sleep(self.E_DELAY)
 
     def lcd_string(self, message, line):
-        # Send string to display
+        """ Writes string to LCD screen on specified line """
         message = message.ljust(self.LCD_WIDTH, " ")
         self.lcd_byte(line, self.LCD_CMD)
 
         for i in range(self.LCD_WIDTH):
-            self.lcd_byte(ord(message[i]),self. LCD_CHR)
+            self.lcd_byte(ord(message[i]), self.LCD_CHR)
+
+    def is_uuid_in_client_list(self, string: str) -> bool:
+        """ Checks if UUID is already registered """
+        for client in self.client_list:
+            if string == client.uuid:
+                return True
+        return False
 
 
 if __name__ == '__main__':
     try:
         server = Server('', 5555, True)
         server.init_socket()
-        start_new_thread(server.lcd_main, ())
 
         while True:
             c, i = server.server_socket.accept()
 
             uuid = server.get_uuid(c)
             y = Node(i[0], i[1], uuid, c)
-            server.client_list.append(y)
-            if "GUI" in uuid: y.is_gui = True
+            if server.is_uuid_in_client_list(uuid):
+                y = server.find_client(uuid)
+                y.connection_handler = c
+                y.online = True
+            else:
+                server.client_list.append(y)
+                if "GUI" in uuid: y.is_gui = True
             server.socket_write(c, "REG_COMPLETE", uuid)
 
             if server.debug: print(
@@ -353,7 +359,7 @@ if __name__ == '__main__':
 
             start_new_thread(server.socket_read, (c,))
             start_new_thread(server.clients_alive, ())
-
+            start_new_thread(server.lcd_main, ())
 
     except Exception as e:
         print("There was an error initiating this node: {}".format(e))
