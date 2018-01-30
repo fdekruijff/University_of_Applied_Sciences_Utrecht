@@ -60,8 +60,8 @@ class BarrierNode(Node):
         if data == "IS_ALIVE":
             self.socket_write(data_header="IS_ALIVE", data="ACK")
             self.last_ping = time.time()
-        elif data == "STATUS":
-            self.socket_write(data_header="STATUS", data=str(self))
+        elif data == "BARRIER_STATUS":
+            self.socket_write(data_header="BARRIER_STATUS", data=str(self.barrier_open))
         elif data == "UUID_REQ":
             self.socket_write(data_header="UUID", data=str(self.uuid))
         elif data == "REG_COMPLETE":
