@@ -202,6 +202,9 @@ class Server:
                     try:
                         self.socket_write(client.connection_handler, "IS_ALIVE", client.uuid)
                     except ConnectionResetError:
+                        if "NODE" in client.uuid:
+                            client.online = False
+                            return
                         self.remove_client(client.uuid)
                         if self.debug:
                             print("{} - Client with UUID {} has lost connection and has been unregistered.".format(
@@ -240,18 +243,12 @@ class Server:
         else:
             return "kering is open"
 
-    def status_rasbberry(self, x) -> str:
-        # TODO: Moet werken met sockets en niet met GPIO
-        if x:
-            input_value = GPIO.input(16)
-            if input_value:
-                return 'PI 1  actief'
-            return 'PI 1 Inactief'
-        elif not x:
-            input_value = GPIO.input(12)
-            if input_value:
-                return 'PI 2  actief'
-            return 'PI 2 Inactief'
+    def status_rasbberry(self) -> str:
+        pass
+        # return_value = ()
+        # for node in self.client_list:
+        #     if "GUI" not in node.uuid:
+        #         return_value += node.
 
     @staticmethod
     def switch_status() -> int:
@@ -330,6 +327,20 @@ class Server:
         for i in range(self.LCD_WIDTH):
             self.lcd_byte(ord(message[i]),self. LCD_CHR)
 
+    def is_uuid_in_client_list(self, string: str) -> bool:
+        """ Checks if UUID is already registered """
+        for client in self.client_list:
+            if string == client.uuid:
+                return True
+        return False
+
+    def get_client(self, uuid) -> Node or None:
+        """ Returns Node if found with that UUID """
+        for client in self.client_list:
+            if uuid == client.uuid:
+                return client
+        return None
+
 
 if __name__ == '__main__':
     try:
@@ -341,8 +352,13 @@ if __name__ == '__main__':
 
             uuid = server.get_uuid(c)
             y = Node(i[0], i[1], uuid, c)
-            server.client_list.append(y)
-            if "GUI" in uuid: y.is_gui = True
+            if server.is_uuid_in_client_list(uuid):
+                y = server.get_client(uuid)
+                y.connection_handler = c
+                y.online = True
+            else:
+                server.client_list.append(y)
+                if "GUI" in uuid: y.is_gui = True
             server.socket_write(c, "REG_COMPLETE", uuid)
 
             if server.debug: print(
@@ -350,6 +366,7 @@ if __name__ == '__main__':
 
             start_new_thread(server.socket_read, (c,))
             start_new_thread(server.clients_alive, ())
+            start_new_thread(server.lcd_main, ())
 
     except Exception as e:
         print("There was an error initiating this node: {}".format(e))

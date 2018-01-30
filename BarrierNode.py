@@ -121,7 +121,7 @@ class BarrierNode(Node):
 
 if __name__ == '__main__':
     try:
-        node = BarrierNode("192.168.137.110", 5555, "test", True)
+        node = BarrierNode("192.168.137.110", 5555, "NODE-test", True)
         node.main_loop()
     except Exception as e:
         print("There was an error initiating this node: {}".format(e))
