@@ -57,6 +57,7 @@ class Server:
             if "NODE" in self.client_list:
                 # Sensor is on 15cm height, minus the distance is the water level
                 return "{}cm".format(15 - client.water_level)
+        return "Sensor error"
 
     def lcd_main(self):
         while True:
@@ -98,7 +99,7 @@ class Server:
                         if Server.switch_status() == 1:
                             while True:
                                 self.lcd_string("Water niveau: ", self.LCD_LINE_1)
-                                self.lcd_string(self.get_water_level(), self.LCD_LINE_2)
+                                self.lcd_string(str(self.get_water_level()), self.LCD_LINE_2)
                                 if Server.switch_status() != 1:
                                     time.sleep(0.5)
                                     if Server.switch_status() != 1:
@@ -114,10 +115,6 @@ class Server:
                                     break
             except KeyboardInterrupt:
                 pass
-            # finally:
-            # self.lcd_byte(0x01, self.LCD_CMD)
-            # self.lcd_string("Goodbye!", self.LCD_LINE_1)
-            # GPIO.cleanup()
 
     def init_socket(self) -> None:
         """ Initialises server socket """
@@ -248,9 +245,9 @@ class Server:
 
     def lcd_kering_status(self) -> str:
         if self.barrier_open:
-            return "| Kering is geopend"
+            return "Geopend"
         else:
-            return "| Kering is geloten"
+            return "Gesloten"
 
     def status_raspberry(self, x) -> str:
         node_list = []
@@ -258,7 +255,7 @@ class Server:
             if "NODE" in node.uuid:
                 node_list.append(node)
         if len(node_list) == 0:
-            return "{}. Niet verbonden".format(x+1)
+            return "{}. Error".format(x+1)
         if node_list[x].online:
             status = "Operationeel"
         else:
