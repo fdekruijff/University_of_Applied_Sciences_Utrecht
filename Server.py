@@ -26,6 +26,11 @@ class Server:
 
         self.barrier_open = False
         self.operational = True
+        self.water_level = self.get_water_level()
+        self.status_raspberry1 = self.status_raspberry(0)
+        self.status_raspberry2 = self.status_raspberry(1)
+
+
 
         # Define GPIO to LCD mapping
         self.LCD_RS = 7
@@ -167,6 +172,14 @@ class Server:
             return str(data)
         elif data_header == "GUI_UPDATE_REQ":
             self.socket_write(client.connection_handler, "CLIENT_DATA,{}".format(self.send_client_data()), client.uuid)
+        elif data_header == "STATUS_UPDATE_REQ":
+            self.socket_write(client.connection_handler, "SERVER_STATUS,{},{},{},{},{}".format(
+                                                            str(self.barrier_open),
+                                                            str(self.operational),
+                                                            str(self.water_level),
+                                                            str(self.status_raspberry1),
+                                                            str(self.status_raspberry2)),
+                                                            client_uuid)
 
     def socket_write(self, conn, message: str, client_uuid: str) -> None:
         """
