@@ -67,6 +67,9 @@ class Gui(Node, tk.Frame):
         self.client_list = []
         self.graph_x = []
         self.graph_y = []
+        self.barrier_open = True
+        self.operational = False
+        self.water_level = 0.0
         self.last_data = None
         self.bestand_locatie = 'waterpeil.csv'
         self.csv_url = 'https://waterberichtgeving.rws.nl/wbviewer/maak_grafiek.php' \
@@ -165,6 +168,7 @@ class Gui(Node, tk.Frame):
             bd=5,
             font=self.font_size_10,
             height=15,
+            relief='flat'
         )
 
         self.boven_frame.pack(side=TOP, fill=X)
@@ -235,8 +239,6 @@ class Gui(Node, tk.Frame):
     def lees_gegevens(self):
         self.graph_x = []
         self.graph_y = []
-        print(self.graph_x, self.graph_y)
-
         with open(self.bestand_locatie, 'r') as myCSVFILE:  # Leest het geschreven csv bestand
             reader = csv.reader(myCSVFILE, delimiter=';')
             myCSVFILE.readline()
@@ -311,6 +313,10 @@ class Gui(Node, tk.Frame):
             self.socket_write(data_header="UUID", data=str(self.uuid))
         elif data[1] == "REG_COMPLETE":
             self.registered = True
+        elif data[1] == "SERVER_STATUS":
+            self.barrier_open = data[2]
+            self.operational = data[3]
+            self.water_level = data[4]
 
     def socket_write(self, data: str, data_header: str):
         """
@@ -376,6 +382,7 @@ class Gui(Node, tk.Frame):
         while True:
             if self.registered:
                 self.socket_write("", "GUI_UPDATE_REQ")
+                self.socket_write("", "STATUS_UPDATE_REQ")
                 time.sleep(2.5)
 
     def update_graph(self):
@@ -394,10 +401,10 @@ class Gui(Node, tk.Frame):
     def update_gui(self):
         'Function to update labels and the listbox of the GUI'
         self.populate_client_list()
-        self.node_1_status_label['text'] = str(self.online)
-        self.node_2_status_label['text'] = str(self.online)
+        self.node_1_status_label['text'] = str(self.operational)
+        self.node_2_status_label['text'] = str(self.operational)
         self.barrier_value_label ['text'] = str(self.barrier_open)
-        self.water_level_value_label['text'] = str(self.graph_y[-1]) + ' cm'
+        self.water_level_value_label['text'] = str(self.water_level) + ' cm'
 
     def update_gui_handler(self):
         """ Recursively calls update function every x seconds """
