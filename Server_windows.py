@@ -24,7 +24,7 @@ class Server:
 
         self.barrier_open = True
         self.operational = True
-        self.water_level = 0.0
+        self.water_level = 5.5
 
     @staticmethod
     def get_time() -> str:

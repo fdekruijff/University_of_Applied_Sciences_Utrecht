@@ -67,9 +67,9 @@ class Gui(Node, tk.Frame):
         self.client_list = []
         self.graph_x = []
         self.graph_y = []
-        self.barrier_open = True
-        self.operational = False
-        self.water_level = 0.0
+        self.barrier_open = ''
+        self.operational = ''
+        self.water_level = ''
         self.last_data = None
         self.bestand_locatie = 'waterpeil.csv'
         self.csv_url = 'https://waterberichtgeving.rws.nl/wbviewer/maak_grafiek.php' \
