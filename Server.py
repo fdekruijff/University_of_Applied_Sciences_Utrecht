@@ -363,3 +363,4 @@ if __name__ == '__main__':
 
     except Exception as e:
         print("There was an error initiating this node: {}".format(e))
+        GPIO.cleanup()

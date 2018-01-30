@@ -7,7 +7,7 @@
 
 class Node:
     def __init__(self, ip_address: str, port: int, uuid: str, connection_handler, barrier_open=False, online=False,
-                 debug=False, registered=False, is_gui=False, last_ping=0.0):
+                 debug=False, registered=False, is_gui=False, last_ping=0.0, water_level=0.0):
         self.ip_address = ip_address
         self.port = port
         self.connection_handler = connection_handler
@@ -18,6 +18,7 @@ class Node:
         self.registered = registered
         self.is_gui = is_gui
         self.last_ping = last_ping
+        self.water_level = water_level
 
     def __str__(self):
         """ Returns object parameters in JSON string format for socket data transfer """

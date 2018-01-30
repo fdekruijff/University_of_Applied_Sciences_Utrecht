@@ -10,6 +10,8 @@ import sys
 import time
 from _thread import *
 
+import RPi.GPIO as GPIO
+
 from Node import Node
 
 
@@ -26,6 +28,18 @@ class BarrierNode(Node):
         self.last_ping = 0
         self.barrier_open = True
 
+        self.afstand = 5096
+
+        GPIO.setmode(GPIO.BCM)
+        GPIO.setwarnings(False)
+        GPIO.setup(20, GPIO.OUT)
+        GPIO.setup(21, GPIO.IN)
+        GPIO.setup(16, GPIO.IN)
+        self.GPIO_TRIGGER = 2
+        self.GPIO_ECHO = 3
+        GPIO.setup(self.GPIO_TRIGGER, GPIO.OUT)
+        GPIO.setup(self.GPIO_ECHO, GPIO.IN)
+
         super().__init__(ip_address, port, node_name, self.client_socket)
 
     def main_loop(self):
@@ -40,8 +54,8 @@ class BarrierNode(Node):
             finally:
                 if self.debug:
                     print(
-                    "{} - Successfully connect to IP:{}, PORT:{}".format(
-                        BarrierNode.get_time(), self.ip_address, self.port))
+                        "{} - Successfully connect to IP:{}, PORT:{}".format(
+                            BarrierNode.get_time(), self.ip_address, self.port))
 
             start_new_thread(self.has_timeout, ())
 
@@ -49,6 +63,68 @@ class BarrierNode(Node):
                 self.socket_read()
         finally:
             self.stop_client()
+
+    def distance(self):
+        # set Trigger to HIGH
+        GPIO.output(self.GPIO_TRIGGER, True)
+        time.sleep(0.00001)  # set Trigger after 0.01ms to LOW
+        GPIO.output(self.GPIO_TRIGGER, False)
+
+        start_time = time.time()
+        stop_time = time.time()
+
+        # save StartTime
+        while GPIO.input(self.GPIO_ECHO) == 0:
+            start_time = time.time()
+
+        # save time of arrival
+        while GPIO.input(self.GPIO_ECHO) == 1:
+            stop_time = time.time()
+
+        # multiply with the sonic speed (34300 cm/s)
+        # and divide by 2, because there and back
+        return ((stop_time - start_time) * 34300) / 2
+
+    def verander_kering_status(self, step_pins: list):
+        for pin in step_pins:
+            GPIO.setup(pin, GPIO.OUT)
+            GPIO.output(pin, False)
+
+        StepCount1 = 4
+        Seq1 = list(range(0, StepCount1))
+        Seq1[0] = [1, 0, 0, 0]
+        Seq1[1] = [0, 1, 0, 0]
+        Seq1[2] = [0, 0, 1, 0]
+        Seq1[3] = [0, 0, 0, 1]
+
+        StepCount2 = 8
+        Seq2 = list(range(0, StepCount2))
+        Seq2[0] = [1, 0, 0, 0]
+        Seq2[1] = [1, 1, 0, 0]
+        Seq2[2] = [0, 1, 0, 0]
+        Seq2[3] = [0, 1, 1, 0]
+        Seq2[4] = [0, 0, 1, 0]
+        Seq2[5] = [0, 0, 1, 1]
+        Seq2[6] = [0, 0, 0, 1]
+        Seq2[7] = [1, 0, 0, 1]
+
+        Seq = Seq2
+        StepCount = StepCount2
+
+        StepCounter = 0
+        for rond in range(0, self.afstand):
+            for pin in range(0, 4):
+                xpin = step_pins[pin]
+                if Seq[StepCounter][pin] != 0:
+                    GPIO.output(xpin, True)
+                else:
+                    GPIO.output(xpin, False)
+
+            StepCounter += 1
+            # Als we aan het einde van de stappenvolgorde zijn beland start dan opnieuw
+            if (StepCounter == StepCount): StepCounter = 0
+            if (StepCounter < 0): StepCounter = StepCount
+            time.sleep(.001)
 
     @staticmethod
     def get_time():
@@ -83,6 +159,18 @@ class BarrierNode(Node):
             self.stop_client()
             sys.exit()
         self.client_socket.send(message.encode('ascii'))
+
+    def barrier_main_loop(self):
+        """ Opens or closes barrier based on water level """
+        while True:
+            self.water_level = self.distance()
+            if self.water_level <= 10 and self.barrier_open:
+                self.verander_kering_status([5, 6, 13, 26])
+                self.barrier_open = False
+            elif self.water_level > 10 and not self.barrier_open:
+                self.verander_kering_status([26, 13, 6, 5])
+                self.barrier_open = True
+            time.sleep(1)
 
     def stop_client(self):
         """ Cleans up GPIO when exiting """
@@ -122,6 +210,8 @@ class BarrierNode(Node):
 if __name__ == '__main__':
     try:
         node = BarrierNode("192.168.137.110", 5555, "NODE-test", True)
+        start_new_thread(node.barrier_main_loop, ())
         node.main_loop()
     except Exception as e:
         print("There was an error initiating this node: {}".format(e))
+        GPIO.cleanup()
