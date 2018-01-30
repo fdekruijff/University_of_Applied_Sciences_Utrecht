@@ -42,7 +42,7 @@ class Gui(Node, tk.Frame):
         self.hoofd_frame_midden = Frame(self.hoofd_frame)
         self.hoofd_frame_onder = Frame(self.hoofd_frame)
         self.resultaat_frame = Frame(self.root)
-        self.scrollbar = Scrollbar(self.resultaat_frame)
+        self.scrollbar = Scrollbar(self.hoofd_frame_onder)
         self.figure = Figure((5, 2), 100)
         self.canvas = FigureCanvasTkAgg(self.figure, self.resultaat_frame)
         self.client_listbox = Listbox(self.hoofd_frame_onder)
