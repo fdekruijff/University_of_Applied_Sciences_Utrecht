@@ -70,6 +70,8 @@ class Gui(Node, tk.Frame):
         self.barrier_open = ''
         self.operational = ''
         self.water_level = ''
+        #self.status_raspberry1 = ''
+        #self.status_raspberry2 = ''
         self.last_data = None
         self.bestand_locatie = 'waterpeil.csv'
         self.csv_url = 'https://waterberichtgeving.rws.nl/wbviewer/maak_grafiek.php' \
@@ -94,7 +96,7 @@ class Gui(Node, tk.Frame):
         tk.Frame.__init__(self)
 
     def init_tkinter(self):
-        # TODO: This should work without writing to a file first.
+        """Create tkinter objects"""
         self.haal_gegevens_op()
         self.lees_gegevens()
         self.font_size_10.configure(family="Courier", size=10)
@@ -221,7 +223,7 @@ class Gui(Node, tk.Frame):
         return datetime.datetime.now().strftime('%d-%m-%Y %X')
 
     def haal_gegevens_op(self):
-        "Haalt gegevens op en schrijft dit weg in een csv bestand"
+        """Haalt gegevens op en schrijft dit weg in een csv bestand"""
         with requests.Session() as s:  # Haalt gegevens op van de server
             download = s.get(self.csv_url)
 
@@ -237,6 +239,7 @@ class Gui(Node, tk.Frame):
                 schrijven.writerow(lijn)
 
     def lees_gegevens(self):
+        """Leest de gegevens uit het csv bestand en maakt de x en y as aan van de grafiek"""
         self.graph_x = []
         self.graph_y = []
         with open(self.bestand_locatie, 'r') as myCSVFILE:  # Leest het geschreven csv bestand
@@ -250,7 +253,7 @@ class Gui(Node, tk.Frame):
                     self.graph_y.append(int(waterstand))  # Sla de laatste ingevulde waarde van de waterstand op
 
     def toon_gegevens(self):
-        'Zet de gegevens in een listbox met een bijbehorende kleur'
+        """Zet de gegevens in een listbox met een bijbehorende kleur"""
         with open(self.bestand_locatie, 'r') as myCSVFILE:  # Leest het geschreven csv bestand
             self.client_listbox.delete(0, END)
             reader = csv.reader(myCSVFILE, delimiter=';')
@@ -282,7 +285,7 @@ class Gui(Node, tk.Frame):
                 index += 1
 
     def parse_socket_data(self, data: str):
-        'Handles socket data accordingly'
+        """Handles socket data accordingly"""
         if data[1] == "CLIENT_DATA":
             json_data = ''
             for x in range(2, len(data)):
@@ -317,6 +320,8 @@ class Gui(Node, tk.Frame):
             self.barrier_open = data[2]
             self.operational = data[3]
             self.water_level = data[4]
+            #self.status_raspberry1 = data[5]
+            #self.status_raspberry2 = data[6]
 
     def socket_write(self, data: str, data_header: str):
         """
@@ -364,21 +369,21 @@ class Gui(Node, tk.Frame):
         # self.canvas['plot']= [1,2,3,4,5,6,7], [3,2,5,8,2,6,1]
 
     def button2(self):
-        'Kering sluiten'
+        """Kering sluiten"""
         self.barrier_value_label['fg'] = 'red'
         self.barrier_value_label['text'] = 'GESLOTEN'
         # button2['state'] = 'disabled'
         # button3['state'] = 'active'
 
     def button3(self):
-        'Kering openen'
+        """Kering openen"""
         self.barrier_value_label['fg'] = 'green'
         self.barrier_value_label['text'] = 'OPEN'
         # button3['state'] = 'disabled'
         # button2['state'] = 'active'
 
     def get_server_data(self):
-        'Sends a request to the server to get the latest client JSON data'
+        """"Sends a request to the server to get the latest client JSON data"""
         while True:
             if self.registered:
                 self.socket_write("", "GUI_UPDATE_REQ")
@@ -386,7 +391,7 @@ class Gui(Node, tk.Frame):
                 time.sleep(2.5)
 
     def update_graph(self):
-        'Function to update graph'
+        """Function to update the graph"""
         self.haal_gegevens_op()
         self.graph_y = []
         self.graph_x = []
@@ -399,7 +404,7 @@ class Gui(Node, tk.Frame):
         self.canvas.show()
 
     def update_gui(self):
-        'Function to update labels and the listbox of the GUI'
+        """Function to update labels and the listbox of the GUI"""
         self.populate_client_list()
         self.node_1_status_label['text'] = str(self.operational)
         self.node_2_status_label['text'] = str(self.operational)
@@ -417,7 +422,7 @@ class Gui(Node, tk.Frame):
         self.root.after(300000, self.update_graph_handler)    #Update grafiek elke 5 minuten
 
     def populate_client_list(self):
-        'Shows connected clients in the listbox'
+        "Shows connected clients in the listbox"
         self.client_listbox.delete(0, END)
         self.client_listbox.insert(0, '{:19}{:15}{:21}'.format('UUID', 'IP', 'Port'))
 
