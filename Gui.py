@@ -387,6 +387,7 @@ class Gui(Node, tk.Frame):
         while True:
             if self.registered:
                 self.socket_write("", "GUI_UPDATE_REQ")
+                time.sleep(2.5)
                 self.socket_write("", "STATUS_UPDATE_REQ")
                 time.sleep(2.5)
 
