@@ -52,6 +52,12 @@ class Server:
         """ Returns current time in format %d-%m-%Y %X """
         return datetime.datetime.now().strftime('%d-%m-%Y %X')
 
+    def get_water_level(self) -> str:
+        for client in self.client_list:
+            if "NODE" in self.client_list:
+                # Sensor is on 15cm height, minus the distance is the water level
+                return "{}cm".format(15 - client.water_level)
+
     def lcd_main(self):
         while True:
             try:
@@ -79,8 +85,8 @@ class Server:
                         time.sleep(0.5)
                         if Server.switch_status() == 0:
                             while True:
-                                self.lcd_string(self.status_rasbberry(1), self.LCD_LINE_1)
-                                self.lcd_string(self.status_rasbberry(0), self.LCD_LINE_2)
+                                self.lcd_string(self.status_raspberry(0), self.LCD_LINE_1)
+                                self.lcd_string(self.status_raspberry(1), self.LCD_LINE_2)
                                 if Server.switch_status() != 0:
                                     time.sleep(0.5)
                                     if Server.switch_status() != 0:
@@ -91,8 +97,8 @@ class Server:
                         time.sleep(0.5)
                         if Server.switch_status() == 1:
                             while True:
-                                self.lcd_string("Water niveau", self.LCD_LINE_1)
-                                self.lcd_string("10", self.LCD_LINE_2)
+                                self.lcd_string("Water niveau: ", self.LCD_LINE_1)
+                                self.lcd_string(self.get_water_level(), self.LCD_LINE_2)
                                 if Server.switch_status() != 1:
                                     time.sleep(0.5)
                                     if Server.switch_status() != 1:
@@ -100,8 +106,8 @@ class Server:
                     elif Server.switch_status() == 2:
                         time.sleep(0.5)
                         if Server.switch_status() == 2:
-                            self.lcd_string("Kering: {}".format(self.lcd_kering_status()), self.LCD_LINE_1)
-                            self.lcd_string("", self.LCD_LINE_2)
+                            self.lcd_string("Kering status: ", self.LCD_LINE_1)
+                            self.lcd_string("{}".format(self.lcd_kering_status()), self.LCD_LINE_2)
                             if Server.switch_status() != 2:
                                 time.sleep(0.5)
                                 if Server.switch_status() != 2:
@@ -246,9 +252,19 @@ class Server:
         else:
             return "| Kering is geloten"
 
-    def status_rasbberry(self, x) -> str:
-        # TODO: Moet werken met sockets en niet met GPIO
-        pass
+    def status_raspberry(self, x) -> str:
+        node_list = []
+        for node in self.client_list:
+            if "NODE" in node.uuid:
+                node_list.append(node)
+        if len(node_list) == 0:
+            return "{}. Niet verbonden".format(x+1)
+        if node_list[x].online:
+            status = "Operationeel"
+        else:
+            status = "Offline"
+        return "{} is {}".format(node_list[x].uuid, status)
+
 
     @staticmethod
     def switch_status() -> int:
