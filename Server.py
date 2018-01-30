@@ -48,68 +48,70 @@ class Server:
         self.E_DELAY = 0.0005
 
     @staticmethod
-    def get_time() -> str:
+    def get_time()-> str:
         """ Returns current time in format %d-%m-%Y %X """
         return datetime.datetime.now().strftime('%d-%m-%Y %X')
 
     def lcd_main(self):
-        try:
-            # Main program block
-            GPIO.setwarnings(False)
-            GPIO.setmode(GPIO.BCM)  # Use BCM GPIO numbers
-            GPIO.setup(self.LCD_E, GPIO.OUT)  # E
-            GPIO.setup(self.LCD_RS, GPIO.OUT)  # RS
-            GPIO.setup(self.LCD_D4, GPIO.OUT)  # DB4
-            GPIO.setup(self.LCD_D5, GPIO.OUT)  # DB5
-            GPIO.setup(self.LCD_D6, GPIO.OUT)  # DB6
-            GPIO.setup(self.LCD_D7, GPIO.OUT)  # DB7
-            GPIO.setup(21, GPIO.IN)  # schakelaar
-            GPIO.setup(20, GPIO.IN)  # schakelaar
-            GPIO.setup(16, GPIO.IN)  # raspberry 1
-            GPIO.setup(12, GPIO.IN)  # raspberry 2
+        while True:
+            try:
+                # Main program block
+                GPIO.setwarnings(False)
+                GPIO.setmode(GPIO.BCM)  # Use BCM GPIO numbers
+                GPIO.setup(self.LCD_E, GPIO.OUT)  # E
+                GPIO.setup(self.LCD_RS, GPIO.OUT)  # RS
+                GPIO.setup(self.LCD_D4, GPIO.OUT)  # DB4
+                GPIO.setup(self.LCD_D5, GPIO.OUT)  # DB5
+                GPIO.setup(self.LCD_D6, GPIO.OUT)  # DB6
+                GPIO.setup(self.LCD_D7, GPIO.OUT)  # DB7
+                GPIO.setup(27, GPIO.IN)  # schakelaar
+                GPIO.setup(22, GPIO.IN)  # schakelaar
+                GPIO.setup(16, GPIO.IN)  # raspberry 1
+                GPIO.setup(12, GPIO.IN)  # raspberry 2
 
-            # Initialise display
-            self.lcd_init()
+                # Initialise display
+                self.lcd_init()
 
-            while True:
-                # status raspberry
-                if self.switch_status() == 0:
-                    time.sleep(0.5)
-                    if self.switch_status() == 0:
-                        while True:
-                            self.lcd_string(self.status_rasbberry(1), self.LCD_LINE_1)
-                            self.lcd_string(self.status_rasbberry(0), self.LCD_LINE_2)
-                            if self.switch_status() != 0:
+                while True:
+                    print(Server.switch_status())
+                    # status raspberry
+                    if Server.switch_status() == 0:
+                        time.sleep(0.5)
+                        if Server.switch_status() == 0:
+                            while True:
+                                self.lcd_string(self.status_rasbberry(1), self.LCD_LINE_1)
+                                self.lcd_string(self.status_rasbberry(0), self.LCD_LINE_2)
+                                if Server.switch_status() != 0:
+                                    time.sleep(0.5)
+                                    if Server.switch_status() != 0:
+                                        break
+
+                    # status pijl
+                    elif Server.switch_status() == 1:
+                        time.sleep(0.5)
+                        if Server.switch_status() == 1:
+                            while True:
+                                self.lcd_string("Water niveau", self.LCD_LINE_1)
+                                self.lcd_string("10", self.LCD_LINE_2)
+                                if Server.switch_status() != 1:
+                                    time.sleep(0.5)
+                                    if Server.switch_status() != 1:
+                                        break
+                    elif Server.switch_status() == 2:
+                        time.sleep(0.5)
+                        if Server.switch_status() == 2:
+                            self.lcd_string("Kering: open", self.LCD_LINE_1)
+                            self.lcd_string("", self.LCD_LINE_2)
+                            if Server.switch_status() != 2:
                                 time.sleep(0.5)
-                                if self.switch_status() != 0:
+                                if Server.switch_status() != 2:
                                     break
-
-                # status pijl
-                elif self.switch_status() == 1:
-                    time.sleep(0.5)
-                    if self.switch_status() == 1:
-                        while True:
-                            self.lcd_string("Water niveau", self.LCD_LINE_1)
-                            self.lcd_string(10, self.LCD_LINE_2) # TODO: fixen
-                            if self.switch_status() != 1:
-                                time.sleep(0.5)
-                                if self.switch_status() != 1:
-                                    break
-                elif self.switch_status() == 2:
-                    time.sleep(0.5)
-                    if self.switch_status() == 2:
-                        self.lcd_string("Kering: open", self.LCD_LINE_1) # TODo: fixen
-                        self.lcd_string("", self.LCD_LINE_2)
-                        if self.switch_status() != 2:
-                            time.sleep(0.5)
-                            if self.switch_status() != 2:
-                                break
-        except KeyboardInterrupt:
-            pass
-        finally:
-            self.lcd_byte(0x01, self.LCD_CMD)
-            self.lcd_string("Goodbye!", self.LCD_LINE_1)
-            GPIO.cleanup()
+            except KeyboardInterrupt:
+                pass
+            #finally:
+                # self.lcd_byte(0x01, self.LCD_CMD)
+                # self.lcd_string("Goodbye!", self.LCD_LINE_1)
+                # GPIO.cleanup()
 
     def init_socket(self) -> None:
         """ Initialises server socket """
@@ -202,9 +204,6 @@ class Server:
                     try:
                         self.socket_write(client.connection_handler, "IS_ALIVE", client.uuid)
                     except ConnectionResetError:
-                        if "NODE" in client.uuid:
-                            client.online = False
-                            return
                         self.remove_client(client.uuid)
                         if self.debug:
                             print("{} - Client with UUID {} has lost connection and has been unregistered.".format(
@@ -243,18 +242,24 @@ class Server:
         else:
             return "kering is open"
 
-    def status_rasbberry(self) -> str:
-        pass
-        # return_value = ()
-        # for node in self.client_list:
-        #     if "GUI" not in node.uuid:
-        #         return_value += node.
+    def status_rasbberry(self, x) -> str:
+        # TODO: Moet werken met sockets en niet met GPIO
+        if x:
+            input_value = GPIO.input(16)
+            if input_value:
+                return 'PI 1  actief'
+            return 'PI 1 Inactief'
+        elif not x:
+            input_value = GPIO.input(12)
+            if input_value:
+                return 'PI 2  actief'
+            return 'PI 2 Inactief'
 
     @staticmethod
     def switch_status() -> int:
-        if GPIO.input(21):
+        if GPIO.input(22):
             return 0
-        elif GPIO.input(20):
+        elif GPIO.input(27):
             return 1
         else:
             return 2
@@ -327,38 +332,20 @@ class Server:
         for i in range(self.LCD_WIDTH):
             self.lcd_byte(ord(message[i]),self. LCD_CHR)
 
-    def is_uuid_in_client_list(self, string: str) -> bool:
-        """ Checks if UUID is already registered """
-        for client in self.client_list:
-            if string == client.uuid:
-                return True
-        return False
-
-    def get_client(self, uuid) -> Node or None:
-        """ Returns Node if found with that UUID """
-        for client in self.client_list:
-            if uuid == client.uuid:
-                return client
-        return None
-
 
 if __name__ == '__main__':
     try:
         server = Server('', 5555, True)
         server.init_socket()
+        start_new_thread(server.lcd_main, ())
 
         while True:
             c, i = server.server_socket.accept()
 
             uuid = server.get_uuid(c)
             y = Node(i[0], i[1], uuid, c)
-            if server.is_uuid_in_client_list(uuid):
-                y = server.get_client(uuid)
-                y.connection_handler = c
-                y.online = True
-            else:
-                server.client_list.append(y)
-                if "GUI" in uuid: y.is_gui = True
+            server.client_list.append(y)
+            if "GUI" in uuid: y.is_gui = True
             server.socket_write(c, "REG_COMPLETE", uuid)
 
             if server.debug: print(
@@ -366,7 +353,7 @@ if __name__ == '__main__':
 
             start_new_thread(server.socket_read, (c,))
             start_new_thread(server.clients_alive, ())
-            start_new_thread(server.lcd_main, ())
+
 
     except Exception as e:
         print("There was an error initiating this node: {}".format(e))
