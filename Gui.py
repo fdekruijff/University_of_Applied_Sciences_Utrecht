@@ -92,8 +92,8 @@ class Gui(Node, tk.Frame):
 
     def init_tkinter(self):
         # TODO: This should work without writing to a file first.
+        self.haal_gegevens_op()
         self.lees_gegevens()
-
         self.font_size_10.configure(family="Courier", size=10)
         self.font_size_12.configure(family="Courier", size=12)
 
@@ -235,6 +235,7 @@ class Gui(Node, tk.Frame):
     def lees_gegevens(self):
         self.graph_x = []
         self.graph_y = []
+        print(self.graph_x, self.graph_y)
 
         with open(self.bestand_locatie, 'r') as myCSVFILE:  # Leest het geschreven csv bestand
             reader = csv.reader(myCSVFILE, delimiter=';')
@@ -279,7 +280,7 @@ class Gui(Node, tk.Frame):
                 index += 1
 
     def parse_socket_data(self, data: str):
-        """ Handles socket data accordingly """
+        'Handles socket data accordingly'
         if data[1] == "CLIENT_DATA":
             json_data = ''
             for x in range(2, len(data)):
@@ -371,7 +372,7 @@ class Gui(Node, tk.Frame):
         # button2['state'] = 'active'
 
     def get_server_data(self):
-        """ Sends a request to the server to get the latest client JSON data """
+        'Sends a request to the server to get the latest client JSON data'
         while True:
             if self.registered:
                 self.socket_write("", "GUI_UPDATE_REQ")
@@ -380,6 +381,8 @@ class Gui(Node, tk.Frame):
     def update_graph(self):
         'Function to update graph'
         self.haal_gegevens_op()
+        self.graph_y = []
+        self.graph_x = []
         self.lees_gegevens()
         self.sub_plot = self.figure.add_subplot(111)
         self.sub_plot.plot(self.graph_x[-7:], self.graph_y[-7:])
@@ -389,7 +392,7 @@ class Gui(Node, tk.Frame):
         self.canvas.show()
 
     def update_gui(self):
-        """Function to update labels and the listbox of the GUI"""
+        'Function to update labels and the listbox of the GUI'
         self.populate_client_list()
         self.node_1_status_label['text'] = str(self.online)
         self.node_2_status_label['text'] = str(self.online)
@@ -407,6 +410,7 @@ class Gui(Node, tk.Frame):
         self.root.after(300000, self.update_graph_handler)    #Update grafiek elke 5 minuten
 
     def populate_client_list(self):
+        'Shows connected clients in the listbox'
         self.client_listbox.delete(0, END)
         self.client_listbox.insert(0, '{:19}{:15}{:21}'.format('UUID', 'IP', 'Port'))
 
