@@ -24,7 +24,7 @@ class Gui(Node, tk.Frame):
         super().__init__(
             ip_address=ip_address,
             port=port,
-            uuid="GUI_".format(uuid.uuid4().hex[:7]),
+            uuid="GUI_{}".format(uuid.uuid4().hex[:7]),
             connection_handler=socket.socket(socket.AF_INET, socket.SOCK_STREAM),
             debug=debug,
             is_gui=True,
