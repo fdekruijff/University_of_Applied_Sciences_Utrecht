@@ -1,8 +1,6 @@
 import csv
 import datetime
 import json
-import math
-import pprint
 import random
 import socket
 import time
@@ -26,7 +24,7 @@ class Gui(Node, tk.Frame):
         super().__init__(
             ip_address=ip_address,
             port=port,
-            uuid="GUI-{}".format(uuid.uuid4().hex[:7]),
+            uuid="GUI_".format(uuid.uuid4().hex[:7]),
             connection_handler=socket.socket(socket.AF_INET, socket.SOCK_STREAM),
             debug=debug,
             is_gui=True,
@@ -67,11 +65,6 @@ class Gui(Node, tk.Frame):
         self.client_list = []
         self.graph_x = []
         self.graph_y = []
-        self.barrier_open = ''
-        self.operational = ''
-        self.water_level = ''
-        #self.status_raspberry1 = ''
-        #self.status_raspberry2 = ''
         self.last_data = None
         self.bestand_locatie = 'waterpeil.csv'
         self.csv_url = 'https://waterberichtgeving.rws.nl/wbviewer/maak_grafiek.php' \
@@ -94,7 +87,13 @@ class Gui(Node, tk.Frame):
 
         # Call TkInter super constructor
         tk.Frame.__init__(self)
-
+    
+    @staticmethod
+    def bool(string):
+        if string == "True":
+            return True
+        return False
+    
     def init_tkinter(self):
         """Create tkinter objects"""
         self.haal_gegevens_op()
@@ -156,9 +155,9 @@ class Gui(Node, tk.Frame):
 
         self.sub_plot = self.figure.add_subplot(111)
         self.sub_plot.plot(self.graph_x[-7:], self.graph_y[-7:])
-        self.sub_plot.set_title('Actuele Waterstand ' + Gui.get_time())
-        self.sub_plot.set_xlabel('Tijdstip (Afgelopen uur)', **self.font_graph, fontsize=10)
-        self.sub_plot.set_ylabel('Verschil NAP in cm', **self.font_graph, fontsize=10)
+        self.sub_plot.set_title('Actuele Waterstand ' + Gui.get_time(), **self.font_graph, fontsize=12)
+        self.sub_plot.set_xlabel('Tijdstip (Afgelopen uur)', **self.font_graph, fontsize=8)
+        self.sub_plot.set_ylabel('Verschil NAP in cm', **self.font_graph, fontsize=8)
 
         self.canvas.show()
         self.canvas._tkcanvas.pack(side=BOTTOM, fill=BOTH, expand=True)  # TODO: Fix access to protected member
@@ -191,25 +190,25 @@ class Gui(Node, tk.Frame):
 
         self.node_1_name_label.configure(
             text="Raspberry 1:", bg='midnight blue', fg='white', font=self.font_size_12, height=5)
-        self.node_1_status_label.configure(text='', bg='midnight blue', fg='white', font=self.font_size_12)
+        self.node_1_status_label.configure(text='Offline', bg='midnight blue', fg='white', font=self.font_size_12)
         self.node_1_name_label.grid(row=0, column=0)
         self.node_1_status_label.grid(row=0, column=1)
 
         self.node_2_name_label.configure(
             text='Raspberry 2:', bg='midnight blue', fg='white', font=self.font_size_12, height=5)
-        self.node_2_status_label.configure(text='', bg='midnight blue', fg='white', font=self.font_size_12)
+        self.node_2_status_label.configure(text='Offline', bg='midnight blue', fg='white', font=self.font_size_12)
         self.node_2_name_label.grid(row=0, column=0)
         self.node_2_status_label.grid(row=0, column=1)
 
         self.status_label.grid(row=0, column=0, sticky=W)
         self.status_value_label.grid(row=0, column=1)
         self.status_label.configure(text="Status:", bg='midnight blue', fg='white', font=self.font_size_12)
-        self.status_value_label.configure(text="In werking", bg='midnight blue', fg='white', font=self.font_size_12)
+        self.status_value_label.configure(text="", bg='midnight blue', fg='white', font=self.font_size_12)
 
         self.barrier_label.grid(row=1, column=0, sticky=W)
         self.barrier_value_label.grid(row=1, column=1, sticky=W)
         self.barrier_label.configure(text="Kering:", bg='midnight blue', fg='white', font=self.font_size_12)
-        self.barrier_value_label.configure(text="OPEN", fg='white', bg='midnight blue', font=self.font_size_12)
+        self.barrier_value_label.configure(text="", fg='white', bg='midnight blue', font=self.font_size_12)
 
         self.water_level_label.grid(row=2, column=0)
         self.water_level_value_label.grid(row=2, column=1, sticky=W)
@@ -298,17 +297,40 @@ class Gui(Node, tk.Frame):
             self.client_list.clear()
 
             for x in json_data:
+                if json_data[x]['uuid'] == "NODE_1":
+                    self.barrier_open = Gui.bool(json_data[x]['barrier_open'])
+                    self.online = Gui.bool(json_data[x]['online'])
+                    self.water_level = str(json_data[x]['water_level'])
+                    self.water_level_value_label.configure(text=self.water_level + ' cm')
+
+                    if self.online:
+                        self.node_1_status_label.configure(text="Online")
+                    else:
+                        self.node_1_status_label.configure(text="Offline")
+
+                    if self.barrier_open:
+                        self.barrier_value_label.configure(text="Open")
+                    else:
+                        self.barrier_value_label.configure(text="Gesloten")
+
+
+                if json_data[x]['uuid'] == "NODE_2":
+                    if Gui.bool(json_data[x]['online']):
+                        self.node_2_status_label.configure(text="Online")
+                    else:
+                        self.node_2_status_label.configure(text="Offline")
+
                 self.client_list.append(
                     Node(
                         ip_address=json_data[x]['ip_address'],
                         port=int(json_data[x]['port']),
                         uuid=json_data[x]['uuid'],
                         connection_handler=json_data[x]['connection_handler'],
-                        barrier_open=bool(json_data[x]['barrier_open']),
-                        online=bool(json_data[x]['online']),
-                        debug=bool(json_data[x]['debug']),
-                        registered=bool(json_data[x]['registered']),
-                        is_gui=bool(json_data[x]['is_gui']),
+                        barrier_open=Gui.bool(json_data[x]['barrier_open']),
+                        online=Gui.bool(json_data[x]['online']),
+                        debug=Gui.bool(json_data[x]['debug']),
+                        registered=Gui.bool(json_data[x]['registered']),
+                        is_gui=Gui.bool(json_data[x]['is_gui']),
                         last_ping=float(json_data[x]['last_ping'])
                     )
                 )
@@ -316,12 +338,12 @@ class Gui(Node, tk.Frame):
             self.socket_write(data_header="UUID", data=str(self.uuid))
         elif data[1] == "REG_COMPLETE":
             self.registered = True
-        elif data[1] == "SERVER_STATUS":
-            self.barrier_open = data[2]
-            self.operational = data[3]
-            self.water_level = data[4]
-            #self.status_raspberry1 = data[5]
-            #self.status_raspberry2 = data[6]
+        #elif data[1] == "SERVER_STATUS":
+        #    self.barrier_open = data[2]
+        #    self.operational = data[3]
+        #    self.water_level = data[4]
+        #    self.status_raspberry1 = data[5]
+        #    self.status_raspberry2 = data[6]
 
     def socket_write(self, data: str, data_header: str):
         """
@@ -359,37 +381,14 @@ class Gui(Node, tk.Frame):
         if (data[0] == self.uuid) or (data[0] == "BROADCAST"):
             return self.parse_socket_data(data=data)
 
-    def button1(self):
-        self.client_listbox.delete(0, END)  # Leeg het textveld
-        self.populate_client_list()  # Lees de json file en schrijf weg in de listbox
-        self.haal_gegevens_op()
-        waterpeil = self.graph_y[-1]
-        # self.toon_gegevens()
-        self.water_level_value_label['text'] = str(waterpeil) + ' cm'
-        # self.canvas['plot']= [1,2,3,4,5,6,7], [3,2,5,8,2,6,1]
-
-    def button2(self):
-        """Kering sluiten"""
-        self.barrier_value_label['fg'] = 'red'
-        self.barrier_value_label['text'] = 'GESLOTEN'
-        # button2['state'] = 'disabled'
-        # button3['state'] = 'active'
-
-    def button3(self):
-        """Kering openen"""
-        self.barrier_value_label['fg'] = 'green'
-        self.barrier_value_label['text'] = 'OPEN'
-        # button3['state'] = 'disabled'
-        # button2['state'] = 'active'
-
     def get_server_data(self):
         """"Sends a request to the server to get the latest client JSON data"""
         while True:
             if self.registered:
                 self.socket_write("", "GUI_UPDATE_REQ")
                 time.sleep(2.5)
-                self.socket_write("", "STATUS_UPDATE_REQ")
-                time.sleep(2.5)
+                #self.socket_write("", "STATUS_UPDATE_REQ")
+                #time.sleep(2.5)
 
     def update_graph(self):
         """Function to update the graph"""
@@ -397,28 +396,28 @@ class Gui(Node, tk.Frame):
         self.graph_y = []
         self.graph_x = []
         self.lees_gegevens()
-        self.sub_plot = self.figure.add_subplot(111)
+        self.sub_plot.set_title('Actuele Waterstand ' + Gui.get_time(), fontsize = 8 )
+        self.canvas.get_tk_widget().forget()
         self.sub_plot.plot(self.graph_x[-7:], self.graph_y[-7:])
-        self.sub_plot.set_title('Actuele Waterstand ' + Gui.get_time())
-        self.sub_plot.set_xlabel('Tijdstip (Afgelopen uur)', fontsize=10)
-        self.sub_plot.set_ylabel('Verschil NAP in cm', fontsize=10)
+        self.canvas.get_tk_widget().pack(side=RIGHT, fill=BOTH, expand=True)
         self.canvas.show()
 
     def update_gui(self):
         """Function to update labels and the listbox of the GUI"""
         self.populate_client_list()
-        self.node_1_status_label['text'] = str(self.operational)
-        self.node_2_status_label['text'] = str(self.operational)
-        self.barrier_value_label ['text'] = str(self.barrier_open)
-        self.water_level_value_label['text'] = str(self.water_level) + ' cm'
+
+        if self.node_1_status_label == 'Online' and self.node_2_status_label == 'Online':
+            self.status_value_label['text'] = 'In werking'
+        else:
+            self.status_value_label['text'] = 'Onderhoud vereist'
 
     def update_gui_handler(self):
-        """ Recursively calls update function every x seconds """
+        """ Recursively calls update function every 4.5 seconds """
         self.update_gui()
         self.root.after(4500, self.update_gui_handler)      #Update gui labels elke 4.5 seconden
 
     def update_graph_handler(self):
-        """ Recursively calls update function every x seconds """
+        """ Recursively calls update function every 5 minutes """
         self.update_graph()
         self.root.after(300000, self.update_graph_handler)    #Update grafiek elke 5 minuten
 
@@ -442,7 +441,6 @@ if __name__ == '__main__':
         gui = Gui("127.0.0.1", 5555, True)
         start_new_thread(gui.get_server_data, ())
         start_new_thread(gui.init_socket_read, ())
-        #gui.haal_gegevens_op()
         gui.update_gui_handler()
         gui.update_graph_handler()
         gui.mainloop()
