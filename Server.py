@@ -80,7 +80,6 @@ class Server:
                 self.lcd_init()
 
                 while True:
-                    print(Server.switch_status())
                     # status raspberry
                     if Server.switch_status() == 0:
                         time.sleep(1)

@@ -209,7 +209,7 @@ class BarrierNode(Node):
 
 if __name__ == '__main__':
     try:
-        node = BarrierNode("192.168.137.110", 5555, "NODE-test", True)
+        node = BarrierNode("192.168.42.1", 5555, "NODE-test", True)
         start_new_thread(node.barrier_main_loop, ())
         node.main_loop()
     except Exception as e:
