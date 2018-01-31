@@ -5,7 +5,7 @@
 """
 
 import datetime
-import json
+import pprint
 import socket
 import sys
 import time
@@ -114,10 +114,6 @@ class Server:
                                     break
             except KeyboardInterrupt:
                 pass
-            # finally:
-            # self.lcd_byte(0x01, self.LCD_CMD)
-            # self.lcd_string("Goodbye!", self.LCD_LINE_1)
-            # GPIO.cleanup()
 
     def init_socket(self) -> None:
         """ Initialises server socket """
@@ -158,17 +154,20 @@ class Server:
         return_string += "}"
         return return_string
 
-    def parse_socket_data(self, client_uuid: str, data_header: str, data: str) -> str or None:
+    def parse_socket_data(self, data: list) -> str or None:
         """ Handles socket data accordingly, can be either data or a data_header as data type """
-        client = self.find_client(client_uuid)
-        if data_header == "IS_ALIVE" and data == "ACK":
+        # Check if all data indexes are available
+        # data[0 ] == client uuid
+        # data[1 ] == data header
+        # data[2>] == data
+        client = self.find_client(data[0])
+        if data[1] == "IS_ALIVE" and data == "ACK":
             client.last_ping = time.time()
-        elif data_header == "BARRIER_STATUS":
-            client.barrier_open = bool(data)
-            self.barrier_open = bool(data)
-        elif data_header == "UUID":
+        elif data[1] == "BARRIER_STATUS":
+            pprint.pprint(data)
+        elif data[1] == "UUID":
             return str(data)
-        elif data_header == "GUI_UPDATE_REQ":
+        elif data[1] == "GUI_UPDATE_REQ":
             self.socket_write(client.connection_handler, "CLIENT_DATA,{}".format(self.send_client_data()), client.uuid)
 
     def socket_write(self, conn, message: str, client_uuid: str) -> None:
@@ -200,11 +199,14 @@ class Server:
                 if self.debug: print("{} - Server received: {}".format(Server.get_time(), data))
                 try:
                     # Check if all data indexes are available
+                    # data[0 ] == client uuid
+                    # data[1 ] == data header
+                    # data[2>] == data
                     if data[0] or data[1] or data[2]:
                         pass
                 except IndexError:
                     continue
-                self.parse_socket_data(data[0], data[1], data[2])
+                self.parse_socket_data(data)
             except ConnectionError:
                 for client in self.client_list:
                     try:
@@ -225,7 +227,7 @@ class Server:
         self.socket_write(connection, "UUID_REQ", "")
         try:
             data = connection.recv(2048).decode('utf-8').strip().split(',')
-            return str(self.parse_socket_data(data[0], data[1], data[2]))
+            return str(self.parse_socket_data(data))
 
         except ConnectionError or ConnectionResetError:
             pass
@@ -239,9 +241,7 @@ class Server:
             for client in self.client_list:
                 try:
                     if "GUI" not in client.uuid:
-                        self.socket_write(client.connection_handler, "IS_ALIVE", client.uuid)
                         self.socket_write(client.connection_handler, "STATUS", client.uuid)
-                        self.socket_write(client.connection_handler, "BARRIER_STATUS", client.uuid)
                 except ConnectionError or ConnectionResetError:
                     self.remove_client(uuid)
             time.sleep(2.5)

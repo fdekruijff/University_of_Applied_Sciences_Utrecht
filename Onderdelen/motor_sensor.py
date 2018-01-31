@@ -61,7 +61,7 @@ def sluitkering_motor():
 
     # Set alle pinnen als uitgang.
     for pin in StepPins:
-        print "Setup pins"
+        print("Setup pins")
         GPIO.setup(pin, GPIO.OUT)
         GPIO.output(pin, False)
 

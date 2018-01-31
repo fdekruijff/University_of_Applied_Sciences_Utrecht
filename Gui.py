@@ -24,7 +24,7 @@ class Gui(Node, tk.Frame):
         super().__init__(
             ip_address=ip_address,
             port=port,
-            uuid="GUI_".format(uuid.uuid4().hex[:7]),
+            uuid="GUI_{}".format(uuid.uuid4().hex[:7]),
             connection_handler=socket.socket(socket.AF_INET, socket.SOCK_STREAM),
             debug=debug,
             is_gui=True,
@@ -283,7 +283,7 @@ class Gui(Node, tk.Frame):
 
                 index += 1
 
-    def parse_socket_data(self, data: str):
+    def parse_socket_data(self, data: list):
         """Handles socket data accordingly"""
         if data[1] == "CLIENT_DATA":
             json_data = ''
@@ -313,7 +313,6 @@ class Gui(Node, tk.Frame):
                     else:
                         self.barrier_value_label.configure(text="Gesloten")
 
-
                 if json_data[x]['uuid'] == "NODE_2":
                     if Gui.bool(json_data[x]['online']):
                         self.node_2_status_label.configure(text="Online")
@@ -338,12 +337,6 @@ class Gui(Node, tk.Frame):
             self.socket_write(data_header="UUID", data=str(self.uuid))
         elif data[1] == "REG_COMPLETE":
             self.registered = True
-        #elif data[1] == "SERVER_STATUS":
-        #    self.barrier_open = data[2]
-        #    self.operational = data[3]
-        #    self.water_level = data[4]
-        #    self.status_raspberry1 = data[5]
-        #    self.status_raspberry2 = data[6]
 
     def socket_write(self, data: str, data_header: str):
         """
@@ -387,8 +380,6 @@ class Gui(Node, tk.Frame):
             if self.registered:
                 self.socket_write("", "GUI_UPDATE_REQ")
                 time.sleep(2.5)
-                #self.socket_write("", "STATUS_UPDATE_REQ")
-                #time.sleep(2.5)
 
     def update_graph(self):
         """Function to update the graph"""
