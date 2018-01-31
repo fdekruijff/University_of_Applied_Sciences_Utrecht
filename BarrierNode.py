@@ -62,7 +62,7 @@ class BarrierNode(Node):
             while True:
                 self.socket_read()
         finally:
-            self.stop_client()
+            BarrierNode.stop_client()
 
     def distance(self):
         # set Trigger to HIGH
@@ -156,7 +156,7 @@ class BarrierNode(Node):
         except ConnectionResetError or ConnectionAbortedError:
             if self.debug:
                 print("{} - Connection has been terminated by the server.".format(BarrierNode.get_time()))
-            self.stop_client()
+            BarrierNode.stop_client()
             sys.exit()
         self.client_socket.send(message.encode('ascii'))
 
@@ -172,10 +172,10 @@ class BarrierNode(Node):
                 self.barrier_open = True
             time.sleep(1)
 
-    def stop_client(self):
+    @staticmethod
+    def stop_client():
         """ Cleans up GPIO when exiting """
-        # TODO: Cleanup GPIO here
-        pass
+        GPIO.cleanup()
 
     def has_timeout(self):
         """ Check if the client is no longer connected if it has not received socket data for more than 5.5 seconds """
@@ -185,7 +185,7 @@ class BarrierNode(Node):
             if time.time() - self.last_ping >= 5.5 and self.last_ping != 0:
                 if self.debug:
                     print("There is no longer a connection to the server, exiting system")
-                self.stop_client()
+                BarrierNode.stop_client()
                 sys.exit()
 
     def socket_read(self):
@@ -198,7 +198,7 @@ class BarrierNode(Node):
         except ConnectionResetError or ConnectionAbortedError or KeyboardInterrupt:
             if self.debug:
                 print("{} - Connection has been terminated by the server.".format(BarrierNode.get_time()))
-            self.stop_client()
+            BarrierNode.stop_client()
             sys.exit()
         data = data.decode('utf-8').strip().split(',')
         if self.debug:
