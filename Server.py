@@ -88,19 +88,19 @@ class Server:
                     print(Server.switch_status())
                     # status raspberry
                     if Server.switch_status() == 0:
-                        time.sleep(0.5)
+                        time.sleep(1)
                         if Server.switch_status() == 0:
                             while True:
                                 self.lcd_string(self.status_raspberry(0), self.LCD_LINE_1)
                                 self.lcd_string(self.status_raspberry(1), self.LCD_LINE_2)
                                 if Server.switch_status() != 0:
-                                    time.sleep(0.5)
+                                    time.sleep(1)
                                     if Server.switch_status() != 0:
                                         break
 
                     # status pijl
                     elif Server.switch_status() == 1:
-                        time.sleep(0.5)
+                        time.sleep(1)
                         if Server.switch_status() == 1:
                             while True:
                                 self.lcd_string("Water niveau: ", self.LCD_LINE_1)
@@ -110,12 +110,12 @@ class Server:
                                     if Server.switch_status() != 1:
                                         break
                     elif Server.switch_status() == 2:
-                        time.sleep(0.5)
+                        time.sleep(1)
                         if Server.switch_status() == 2:
                             self.lcd_string("Kering status: ", self.LCD_LINE_1)
                             self.lcd_string("{}".format(self.lcd_kering_status()), self.LCD_LINE_2)
                             if Server.switch_status() != 2:
-                                time.sleep(0.5)
+                                time.sleep(1)
                                 if Server.switch_status() != 2:
                                     break
             except KeyboardInterrupt:
@@ -279,11 +279,11 @@ class Server:
     @staticmethod
     def switch_status() -> int:
         if GPIO.input(22):
-            return 0
-        elif GPIO.input(27):
             return 1
-        else:
+        elif GPIO.input(27):
             return 2
+        else:
+            return 0
 
     def lcd_init(self):
         # Initialise display
