@@ -26,6 +26,11 @@ class Server:
 
         self.barrier_open = False
         self.operational = True
+        self.water_level = self.get_water_level()
+        self.status_raspberry1 = self.status_raspberry(0)
+        self.status_raspberry2 = self.status_raspberry(1)
+
+
 
         # Define GPIO to LCD mapping
         self.LCD_RS = 7
@@ -57,7 +62,7 @@ class Server:
             if "NODE" in self.client_list:
                 # Sensor is on 15cm height, minus the distance is the water level
                 return "{}cm".format(15 - client.water_level)
-            return "Sensor error"
+        return "Sensor error"
 
     def lcd_main(self):
         while True:
@@ -80,6 +85,7 @@ class Server:
                 self.lcd_init()
 
                 while True:
+                    print(Server.switch_status())
                     # status raspberry
                     if Server.switch_status() == 0:
                         time.sleep(1)
@@ -100,7 +106,7 @@ class Server:
                                 self.lcd_string("Water niveau: ", self.LCD_LINE_1)
                                 self.lcd_string(str(self.get_water_level()), self.LCD_LINE_2)
                                 if Server.switch_status() != 1:
-                                    time.sleep(1)
+                                    time.sleep(0.5)
                                     if Server.switch_status() != 1:
                                         break
                     elif Server.switch_status() == 2:
@@ -114,10 +120,6 @@ class Server:
                                     break
             except KeyboardInterrupt:
                 pass
-            # finally:
-            # self.lcd_byte(0x01, self.LCD_CMD)
-            # self.lcd_string("Goodbye!", self.LCD_LINE_1)
-            # GPIO.cleanup()
 
     def init_socket(self) -> None:
         """ Initialises server socket """
@@ -170,6 +172,14 @@ class Server:
             return str(data)
         elif data_header == "GUI_UPDATE_REQ":
             self.socket_write(client.connection_handler, "CLIENT_DATA,{}".format(self.send_client_data()), client.uuid)
+        elif data_header == "STATUS_UPDATE_REQ":
+            self.socket_write(client.connection_handler, "SERVER_STATUS,{},{},{},{},{}".format(
+                                                            str(self.barrier_open),
+                                                            str(self.operational),
+                                                            str(self.water_level),
+                                                            str(self.status_raspberry1),
+                                                            str(self.status_raspberry2)),
+                                                            client_uuid)
 
     def socket_write(self, conn, message: str, client_uuid: str) -> None:
         """
@@ -250,7 +260,7 @@ class Server:
         if self.barrier_open:
             return "Geopend"
         else:
-            return "Geloten"
+            return "Gesloten"
 
     def status_raspberry(self, x) -> str:
         node_list = []
@@ -258,7 +268,7 @@ class Server:
             if "NODE" in node.uuid:
                 node_list.append(node)
         if len(node_list) == 0:
-            return "{}.Niet verbonden".format(x+1)
+            return "{}. Error".format(x+1)
         if node_list[x].online:
             status = "Operationeel"
         else:
@@ -269,11 +279,11 @@ class Server:
     @staticmethod
     def switch_status() -> int:
         if GPIO.input(22):
-            return 0
-        elif GPIO.input(27):
             return 1
-        else:
+        elif GPIO.input(27):
             return 2
+        else:
+            return 0
 
     def lcd_init(self):
         # Initialise display
@@ -355,7 +365,6 @@ if __name__ == '__main__':
     try:
         server = Server('', 5555, True)
         server.init_socket()
-        start_new_thread(server.lcd_main, ())
 
         while True:
             c, i = server.server_socket.accept()
@@ -376,7 +385,7 @@ if __name__ == '__main__':
 
             start_new_thread(server.socket_read, (c,))
             start_new_thread(server.clients_alive, ())
-
+            start_new_thread(server.lcd_main, ())
 
     except Exception as e:
         print("There was an error initiating this node: {}".format(e))
