@@ -154,8 +154,8 @@ class Gui(Node, tk.Frame):
         self.sub_plot = self.figure.add_subplot(111)
         self.sub_plot.plot(self.graph_x[-7:], self.graph_y[-7:])
         self.sub_plot.set_title('Actuele Waterstand ' + Gui.get_time(), fontsize=10)
-        self.sub_plot.set_xlabel('Tijdstip (Afgelopen uur)', fontsize=8)
-        self.sub_plot.set_ylabel('Verschil NAP in cm', fontsize=8)
+        self.sub_plot.set_xlabel('Tijdstip (Afgelopen uur)', fontsize=10)
+        self.sub_plot.set_ylabel('Verschil NAP in cm', fontsize=10)
 
         self.canvas.show()
         self.canvas._tkcanvas.pack(side=BOTTOM, fill=BOTH, expand=True)  # TODO: Fix access to protected member
@@ -407,6 +407,12 @@ class Gui(Node, tk.Frame):
     def update_gui(self):
         """Function to update labels and the listbox of the GUI"""
         self.populate_client_list()
+
+        for client in self.client_list:
+            if "NODE_1" == client.uuid:
+                self.node_1_status_label['text'] = 'Offline'
+            if "NODE_2" == client.uuid:
+                self.node_2_status_label['text'] = 'Offline'
 
         if self.node_1_status_label['text'] == 'Online' and self.node_2_status_label['text'] == 'Online':
             self.status_value_label['text'] = 'In werking'
