@@ -269,6 +269,7 @@ class Server:
                 if client.barrier_open:
                     return "Geopend"
                 return "Gesloten"
+        return "Onbekend"
 
     def status_raspberry(self) -> None:
         status_1 = "1.Niet verbonden"
@@ -279,7 +280,7 @@ class Server:
                     status_1 = "1.Operationeel"
                 else:
                     status_1 = "1.Niet verbonden"
-            elif "NODE_2" in client.uuid:
+            if "NODE_2" in client.uuid:
                 if client.online:
                     status_2 = "2.Operationeel"
                 else:
