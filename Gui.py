@@ -34,7 +34,6 @@ class Gui(Node, tk.Frame):
         self.root = Tk()
         self.font_size_10 = tkinter.font.Font()
         self.font_size_12 = tkinter.font.Font()
-        self.font_graph = {'fontname':'Courier'}
         self.hoofd_frame = Frame(self.root)
         self.hoofd_frame_boven = Frame(self.hoofd_frame)
         self.hoofd_frame_midden = Frame(self.hoofd_frame)
@@ -155,9 +154,9 @@ class Gui(Node, tk.Frame):
 
         self.sub_plot = self.figure.add_subplot(111)
         self.sub_plot.plot(self.graph_x[-7:], self.graph_y[-7:])
-        self.sub_plot.set_title('Actuele Waterstand ' + Gui.get_time(), **self.font_graph, fontsize=12)
-        self.sub_plot.set_xlabel('Tijdstip (Afgelopen uur)', **self.font_graph, fontsize=8)
-        self.sub_plot.set_ylabel('Verschil NAP in cm', **self.font_graph, fontsize=8)
+        self.sub_plot.set_title('Actuele Waterstand ' + Gui.get_time(), fontsize=10)
+        self.sub_plot.set_xlabel('Tijdstip (Afgelopen uur)', fontsize=8)
+        self.sub_plot.set_ylabel('Verschil NAP in cm', fontsize=8)
 
         self.canvas.show()
         self.canvas._tkcanvas.pack(side=BOTTOM, fill=BOTH, expand=True)  # TODO: Fix access to protected member
@@ -349,8 +348,9 @@ class Gui(Node, tk.Frame):
         try:
             self.connection_handler.send(message.encode('ascii'))
         except ConnectionResetError or ConnectionAbortedError:
-            if self.debug: print("{} - Connection has been terminated by the server.".format(self.get_time()))
-            exit()
+            if self.debug:
+                print("{} - Connection has been terminated by the server.".format(self.get_time()))
+                self.default_values_labels()
         self.connection_handler.send(message.encode('ascii'))
 
     def socket_read(self):
@@ -367,12 +367,26 @@ class Gui(Node, tk.Frame):
         except ConnectionResetError or ConnectionAbortedError or KeyboardInterrupt:
             if self.debug:
                 print("{} - Connection has been terminated by the server.".format(Gui.get_time()))
-            sys.exit()
+                self.default_values_labels()
         data = data.decode('utf-8').strip().split(',')
         if self.debug:
             print("{} - GUI received: {}".format(Gui.get_time(), data))
         if (data[0] == self.uuid) or (data[0] == "BROADCAST"):
             return self.parse_socket_data(data=data)
+
+
+
+    def default_values_labels(self):
+        self.water_level_value_label.configure(text='Sensor error', fg='white', bg='midnight blue',
+                                               font=self.font_size_12)
+        self.node_1_status_label.configure(text='Offline', bg='midnight blue', fg='white', font=self.font_size_12)
+        self.node_2_status_label.configure(text='Offline', bg='midnight blue', fg='white', font=self.font_size_12)
+        self.status_value_label.configure(text="Onderhoud vereist", bg='midnight blue', fg='white',
+                                          font=self.font_size_12)
+        self.barrier_value_label.configure(text="Onbekend", fg='white', bg='midnight blue', font=self.font_size_12)
+        self.water_level_value_label.configure(text='Sensor error', fg='white', bg='midnight blue',
+                                               font=self.font_size_12)
+
 
     def get_server_data(self):
         """"Sends a request to the server to get the latest client JSON data"""
@@ -387,7 +401,7 @@ class Gui(Node, tk.Frame):
         self.graph_y = []
         self.graph_x = []
         self.lees_gegevens()
-        self.sub_plot.set_title('Actuele Waterstand ' + Gui.get_time(), fontsize = 8 )
+        self.sub_plot.set_title('Actuele Waterstand ' + Gui.get_time(), fontsize=10)
         self.canvas.get_tk_widget().forget()
         self.sub_plot.plot(self.graph_x[-7:], self.graph_y[-7:])
         self.canvas.get_tk_widget().pack(side=RIGHT, fill=BOTH, expand=True)
@@ -429,7 +443,7 @@ class Gui(Node, tk.Frame):
 
 if __name__ == '__main__':
     try:
-        gui = Gui("192.168.42.1", 5555, True)
+        gui = Gui("127.0.0.1", 5555, True)
         start_new_thread(gui.get_server_data, ())
         start_new_thread(gui.init_socket_read, ())
         gui.update_gui_handler()
