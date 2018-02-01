@@ -420,8 +420,12 @@ class Gui(Node, tk.Frame):
 
         if self.node_1_status_label['text'] == 'Online' and self.node_2_status_label['text'] == 'Online':
             self.status_value_label['text'] = 'In werking'
-        else:
-            self.status_value_label['text'] = 'Onderhoud vereist'
+        elif self.node_1_status_label['text'] == 'Offline' and self.node_2_status_label['text'] == 'Online':
+            self.status_value_label['text'] = 'In werking (onderhoud vereist)'
+        elif self.node_2_status_label['text'] == 'Offline' and self.node_1_status_label['text'] == 'Online':
+            self.status_value_label['text'] = 'In werking (onderhoud vereist)'
+        elif self.node_1_status_label['text'] == 'Offline' and self.node_2_status_label['text'] == 'Offline':
+            self.status_value_label['text'] = 'Niet in werking (onderhoud vereist)'
 
     def update_gui_handler(self):
         """ Recursively calls update function every 4.5 seconds """
