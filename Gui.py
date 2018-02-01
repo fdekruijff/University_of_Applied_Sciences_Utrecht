@@ -9,13 +9,15 @@ import tkinter.font
 import uuid
 from _thread import *
 from tkinter import *
-#from win32api import GetSystemMetrics
 
 import requests
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 
 from Node import Node
+
+
+# from win32api import GetSystemMetrics
 
 
 class Gui(Node, tk.Frame):
@@ -34,7 +36,7 @@ class Gui(Node, tk.Frame):
         self.root = Tk()
         self.font_size_10 = tkinter.font.Font()
         self.font_size_12 = tkinter.font.Font()
-        self.font_graph = {'fontname':'Courier'}
+        self.font_graph = {'fontname': 'Courier'}
         self.hoofd_frame = Frame(self.root)
         self.hoofd_frame_boven = Frame(self.hoofd_frame)
         self.hoofd_frame_midden = Frame(self.hoofd_frame)
@@ -87,13 +89,13 @@ class Gui(Node, tk.Frame):
 
         # Call TkInter super constructor
         tk.Frame.__init__(self)
-    
+
     @staticmethod
     def bool(string):
         if string == "True":
             return True
         return False
-    
+
     def init_tkinter(self):
         """Create tkinter objects"""
         self.haal_gegevens_op()
@@ -106,8 +108,8 @@ class Gui(Node, tk.Frame):
         self.root.geometry("{}x{}+{}+{}".format(
             self.width,
             self.height,
-            0,#int(math.floor(GetSystemMetrics(0)) / 2 - self.width / 2),
-            0)#int(math.floor(GetSystemMetrics(1)) / 2 - self.height / 2) - 50)
+            0,  # int(math.floor(GetSystemMetrics(0)) / 2 - self.width / 2),
+            0)  # int(math.floor(GetSystemMetrics(1)) / 2 - self.height / 2) - 50)
         )
 
         self.hoofd_frame.pack(side=LEFT, fill=BOTH, expand=True)
@@ -187,7 +189,6 @@ class Gui(Node, tk.Frame):
             highlightcolor='black'
         )
 
-
         self.node_1_name_label.configure(
             text="Raspberry 1:", bg='midnight blue', fg='white', font=self.font_size_12, height=5)
         self.node_1_status_label.configure(text='Offline', bg='midnight blue', fg='white', font=self.font_size_12)
@@ -214,7 +215,6 @@ class Gui(Node, tk.Frame):
         self.water_level_value_label.grid(row=2, column=1, sticky=W)
         self.water_level_label.configure(text="Waterpeil:", bg='midnight blue', fg='white', font=self.font_size_12)
         self.water_level_value_label.configure(text='', fg='white', bg='midnight blue', font=self.font_size_12)
-
 
     @staticmethod
     def get_time():
@@ -300,8 +300,8 @@ class Gui(Node, tk.Frame):
                 if json_data[x]['uuid'] == "NODE_1":
                     self.barrier_open = Gui.bool(json_data[x]['barrier_open'])
                     self.online = Gui.bool(json_data[x]['online'])
-                    self.water_level = str(json_data[x]['water_level'])
-                    self.water_level_value_label.configure(text=self.water_level + ' cm')
+                    self.water_level = float(json_data[x]['water_level'])
+                    self.water_level_value_label.configure(text=str(round(self.water_level, 1)) + ' cm')
 
                     if self.online:
                         self.node_1_status_label.configure(text="Online")
@@ -387,7 +387,7 @@ class Gui(Node, tk.Frame):
         self.graph_y = []
         self.graph_x = []
         self.lees_gegevens()
-        self.sub_plot.set_title('Actuele Waterstand ' + Gui.get_time(), fontsize = 8 )
+        self.sub_plot.set_title('Actuele Waterstand ' + Gui.get_time(), fontsize=8)
         self.canvas.get_tk_widget().forget()
         self.sub_plot.plot(self.graph_x[-7:], self.graph_y[-7:])
         self.canvas.get_tk_widget().pack(side=RIGHT, fill=BOTH, expand=True)
@@ -397,7 +397,7 @@ class Gui(Node, tk.Frame):
         """Function to update labels and the listbox of the GUI"""
         self.populate_client_list()
 
-        if self.node_1_status_label == 'Online' and self.node_2_status_label == 'Online':
+        if self.node_1_status_label['text'] == 'Online' and self.node_2_status_label['text'] == 'Online':
             self.status_value_label['text'] = 'In werking'
         else:
             self.status_value_label['text'] = 'Onderhoud vereist'
@@ -405,12 +405,12 @@ class Gui(Node, tk.Frame):
     def update_gui_handler(self):
         """ Recursively calls update function every 4.5 seconds """
         self.update_gui()
-        self.root.after(4500, self.update_gui_handler)      #Update gui labels elke 4.5 seconden
+        self.root.after(4500, self.update_gui_handler)  # Update gui labels elke 4.5 seconden
 
     def update_graph_handler(self):
         """ Recursively calls update function every 5 minutes """
         self.update_graph()
-        self.root.after(300000, self.update_graph_handler)    #Update grafiek elke 5 minuten
+        self.root.after(300000, self.update_graph_handler)  # Update grafiek elke 5 minuten
 
     def populate_client_list(self):
         "Shows connected clients in the listbox"

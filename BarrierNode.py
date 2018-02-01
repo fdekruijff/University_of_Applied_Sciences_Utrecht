@@ -27,6 +27,7 @@ class BarrierNode(Node):
         self.debug = debug
         self.last_ping = 0
         self.barrier_open = True
+        self.online = True
 
         self.afstand = 5096
 
@@ -138,6 +139,7 @@ class BarrierNode(Node):
         elif data == "UUID_REQ":
             self.socket_write(data_header="UUID", data=str(self.uuid))
         elif data == "REG_COMPLETE":
+            self.online = True
             self.registered = True
 
     def socket_write(self, data_header: str, data: str):
@@ -206,7 +208,7 @@ class BarrierNode(Node):
 
 if __name__ == '__main__':
     try:
-        node = BarrierNode("192.168.42.1", 5555, "NODE-test", True)
+        node = BarrierNode("192.168.42.1", 5555, "NODE_1", True)
         start_new_thread(node.barrier_main_loop, ())
         node.main_loop()
     except Exception as e:

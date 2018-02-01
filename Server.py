@@ -6,6 +6,7 @@
 
 import datetime
 import pprint
+import json
 import socket
 import sys
 import time
@@ -26,11 +27,6 @@ class Server:
 
         self.barrier_open = False
         self.operational = True
-        self.water_level = self.get_water_level()
-        self.status_raspberry1 = self.status_raspberry(0)
-        self.status_raspberry2 = self.status_raspberry(1)
-
-
 
         # Define GPIO to LCD mapping
         self.LCD_RS = 7
@@ -59,9 +55,9 @@ class Server:
 
     def get_water_level(self) -> str:
         for client in self.client_list:
-            if "NODE" in self.client_list:
+            if "NODE_1" in client.uuid:
                 # Sensor is on 15cm height, minus the distance is the water level
-                return "{}cm".format(15 - client.water_level)
+                return "{}cm".format(round(client.water_level, 1))
         return "Sensor error"
 
     def lcd_main(self):
@@ -85,14 +81,12 @@ class Server:
                 self.lcd_init()
 
                 while True:
-                    print(Server.switch_status())
                     # status raspberry
                     if Server.switch_status() == 0:
                         time.sleep(1)
                         if Server.switch_status() == 0:
                             while True:
-                                self.lcd_string(self.status_raspberry(0), self.LCD_LINE_1)
-                                self.lcd_string(self.status_raspberry(1), self.LCD_LINE_2)
+                                self.status_raspberry()
                                 if Server.switch_status() != 0:
                                     time.sleep(1)
                                     if Server.switch_status() != 0:
@@ -132,7 +126,7 @@ class Server:
         finally:
             if self.debug: print("{} - Successfully bound to socket, PORT:{}".format(Server.get_time(), self.port))
 
-    def find_client(self, client_uuid: str) -> Node:
+    def find_client(self, client_uuid: str) -> Node or None:
         """ Returns the ClientNode object that matches the passed UUID """
         for x in self.client_list:
             if client_uuid == x.uuid:
@@ -167,22 +161,32 @@ class Server:
         # data[1 ] == data header
         # data[2>] == data
         client = self.find_client(data[0])
-        if data[1] == "IS_ALIVE" and data == "ACK":
-            client.last_ping = time.time()
-        elif data[1] == "BARRIER_STATUS":
-            pprint.pprint(data)
+
+        # Load JSON object
+        if data[1] == "BARRIER_STATUS":
+            json_data = ''
+            for x in range(2, len(data)):
+                json_data += data[x] + ","
+            json_data = json.loads(json_data[:-1])
+            client = self.find_client(json_data['uuid'])
+            # Check if this node is already registered
+            if client:
+                # A client object has been returned
+                client.online = Server.bool(json_data['online'])
+                client.barrier_open = Server.bool(json_data['barrier_open'])
+                client.registered = Server.bool(json_data['registered'])
+                client.water_level = float(json_data['water_level'])
+
         elif data[1] == "UUID":
-            return str(data)
+            return str(data[0])
         elif data[1] == "GUI_UPDATE_REQ":
             self.socket_write(client.connection_handler, "CLIENT_DATA,{}".format(self.send_client_data()), client.uuid)
-        elif data_header == "STATUS_UPDATE_REQ":
-            self.socket_write(client.connection_handler, "SERVER_STATUS,{},{},{},{},{}".format(
-                                                            str(self.barrier_open),
-                                                            str(self.operational),
-                                                            str(self.water_level),
-                                                            str(self.status_raspberry1),
-                                                            str(self.status_raspberry2)),
-                                                            client_uuid)
+
+    @staticmethod
+    def bool(string):
+        if string == "True":
+            return True
+        return False
 
     def socket_write(self, conn, message: str, client_uuid: str) -> None:
         """
@@ -261,23 +265,28 @@ class Server:
             time.sleep(2.5)
 
     def lcd_kering_status(self) -> str:
-        if self.barrier_open:
-            return "Geopend"
-        else:
-            return "Gesloten"
+        for client in self.client_list:
+            if client.uuid == "NODE_1":
+                if client.barrier_open:
+                    return "Geopend"
+                return "Gesloten"
 
-    def status_raspberry(self, x) -> str:
-        node_list = []
-        for node in self.client_list:
-            if "NODE" in node.uuid:
-                node_list.append(node)
-        if len(node_list) == 0:
-            return "{}. Error".format(x+1)
-        if node_list[x].online:
-            status = "Operationeel"
-        else:
-            status = "Offline"
-        return "{} is {}".format(node_list[x].uuid, status)
+    def status_raspberry(self) -> None:
+        status_1 = "1.Niet verbonden"
+        status_2 = "2.Niet verbonden"
+        for client in self.client_list:
+            if "NODE_1" in client.uuid:
+                if client.online:
+                    status_1 = "1.Operationeel"
+                else:
+                    status_1 = "1.Niet verbonden"
+            elif "NODE_2" in client.uuid:
+                if client.online:
+                    status_2 = "2.Operationeel"
+                else:
+                    status_2 = "2.Niet verbonden"
+        self.lcd_string(status_1, self.LCD_LINE_1)
+        self.lcd_string(status_2, self.LCD_LINE_2)
 
 
     @staticmethod
@@ -369,6 +378,7 @@ if __name__ == '__main__':
     try:
         server = Server('', 5555, True)
         server.init_socket()
+        start_new_thread(server.lcd_main, ())
 
         while True:
             c, i = server.server_socket.accept()
@@ -389,7 +399,6 @@ if __name__ == '__main__':
 
             start_new_thread(server.socket_read, (c,))
             start_new_thread(server.clients_alive, ())
-            start_new_thread(server.lcd_main, ())
 
     except Exception as e:
         print("There was an error initiating this node: {}".format(e))
