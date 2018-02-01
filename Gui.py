@@ -371,8 +371,6 @@ class Gui(Node, tk.Frame):
         if (data[0] == self.uuid) or (data[0] == "BROADCAST"):
             return self.parse_socket_data(data=data)
 
-
-
     def default_values_labels(self):
         self.water_level_value_label.configure(text='Sensor error', fg='white', bg='midnight blue',
                                                font=self.font_size_12)
@@ -383,7 +381,6 @@ class Gui(Node, tk.Frame):
         self.barrier_value_label.configure(text="Onbekend", fg='white', bg='midnight blue', font=self.font_size_12)
         self.water_level_value_label.configure(text='Sensor error', fg='white', bg='midnight blue',
                                                font=self.font_size_12)
-
 
     def get_server_data(self):
         """"Sends a request to the server to get the latest client JSON data"""
@@ -414,8 +411,12 @@ class Gui(Node, tk.Frame):
 
             if "NODE_1" not in node_list:
                 self.node_1_status_label['text'] = 'Offline'
+            else:
+                self.node_1_status_label['text'] = 'Online'
             if "NODE_2" not in node_list:
                 self.node_2_status_label['text'] = 'Offline'
+            else:
+                self.node_2_status_label['text'] = 'Online'
 
     def update_gui(self):
         """Function to update labels and the listbox of the GUI"""
@@ -454,7 +455,7 @@ class Gui(Node, tk.Frame):
 
 if __name__ == '__main__':
     try:
-        gui = Gui("127.0.0.1", 5555, True)
+        gui = Gui("192.168.42.1", 5555, True)
         start_new_thread(gui.get_server_data, ())
         start_new_thread(gui.init_socket_read, ())
         gui.update_gui_handler()
