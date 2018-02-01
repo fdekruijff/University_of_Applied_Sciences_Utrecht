@@ -133,11 +133,8 @@ class BarrierNode(Node):
 
     def parse_socket_data(self, data: str):
         """ Handles socket data accordingly """
-        if data == "IS_ALIVE":
-            self.socket_write(data_header="IS_ALIVE", data="ACK")
-            self.last_ping = time.time()
-        elif data == "BARRIER_STATUS":
-            self.socket_write(data_header="BARRIER_STATUS", data=str(self.barrier_open))
+        if data == "STATUS":
+            self.socket_write(data_header="BARRIER_STATUS", data=str(self))
         elif data == "UUID_REQ":
             self.socket_write(data_header="UUID", data=str(self.uuid))
         elif data == "REG_COMPLETE":
