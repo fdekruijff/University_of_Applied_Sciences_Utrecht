@@ -205,12 +205,12 @@ class Gui(Node, tk.Frame):
         self.barrier_label.grid(row=1, column=0, sticky=W)
         self.barrier_value_label.grid(row=1, column=1, sticky=W)
         self.barrier_label.configure(text="Kering:", bg='midnight blue', fg='white', font=self.font_size_12)
-        self.barrier_value_label.configure(text="", fg='white', bg='midnight blue', font=self.font_size_12)
+        self.barrier_value_label.configure(text="Onbekend", fg='white', bg='midnight blue', font=self.font_size_12)
 
         self.water_level_label.grid(row=2, column=0)
         self.water_level_value_label.grid(row=2, column=1, sticky=W)
         self.water_level_label.configure(text="Waterpeil:", bg='midnight blue', fg='white', font=self.font_size_12)
-        self.water_level_value_label.configure(text='', fg='white', bg='midnight blue', font=self.font_size_12)
+        self.water_level_value_label.configure(text='Sensor error', fg='white', bg='midnight blue', font=self.font_size_12)
 
     @staticmethod
     def get_time():
@@ -413,6 +413,7 @@ class Gui(Node, tk.Frame):
                 self.node_1_status_label['text'] = 'Offline'
             else:
                 self.node_1_status_label['text'] = 'Online'
+                
             if "NODE_2" not in node_list:
                 self.node_2_status_label['text'] = 'Offline'
             else:
@@ -441,10 +442,11 @@ class Gui(Node, tk.Frame):
     def populate_client_list(self):
         "Shows connected clients in the listbox"
         self.client_listbox.delete(0, END)
-        self.client_listbox.insert(0, '{:19}{:15}{:21}'.format('UUID', 'IP', 'Port'))
+        self.client_listbox.insert(0, "{:19}{:15}{:21}".format('UUID', 'IP', 'Port'))
+        self.client_listbox.insert(1, '{:19}{:15}{:21}'.format('SERVER_1', '192.168.42.1', '5555'))
 
         for client in self.client_list:
-            self.client_listbox.insert(2, '{:19}|{:14}|{:20}'.format(client.uuid, client.ip_address, str(client.port)))
+            self.client_listbox.insert(2, '{:19}{:14}{:20}'.format(client.uuid, client.ip_address, str(client.port)))
 
     def init_socket_read(self):
         """ socket_read() thread had to be called via another function to work """
