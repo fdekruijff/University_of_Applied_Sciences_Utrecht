@@ -22,10 +22,6 @@ class Server:
         self.debug = debug
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-        self.barrier_open = True
-        self.operational = True
-        self.water_level = 5.5
-
     @staticmethod
     def get_time() -> str:
         """ Returns current time in format %d-%m-%Y %X """
