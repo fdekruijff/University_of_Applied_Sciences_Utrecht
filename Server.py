@@ -176,7 +176,6 @@ class Server:
                 client.barrier_open = Server.bool(json_data['barrier_open'])
                 client.registered = Server.bool(json_data['registered'])
                 client.water_level = float(json_data['water_level'])
-
         elif data[1] == "UUID":
             return str(data[0])
         elif data[1] == "GUI_UPDATE_REQ":

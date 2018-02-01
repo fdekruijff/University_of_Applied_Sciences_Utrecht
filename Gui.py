@@ -309,12 +309,6 @@ class Gui(Node, tk.Frame):
                     else:
                         self.barrier_value_label.configure(text="Gesloten")
 
-                if json_data[x]['uuid'] == "NODE_2":
-                    if Gui.bool(json_data[x]['online']):
-                        self.node_2_status_label.configure(text="Online")
-                    else:
-                        self.node_2_status_label.configure(text="Offline")
-
                 self.client_list.append(
                     Node(
                         ip_address=json_data[x]['ip_address'],
@@ -361,7 +355,7 @@ class Gui(Node, tk.Frame):
                 # Don't do anything if data is identical
                 return
             self.last_data = data
-        except ConnectionResetError or ConnectionAbortedError or KeyboardInterrupt:
+        except ConnectionResetError or ConnectionAbortedError or KeyboardInterrupt or WindowsError:
             if self.debug:
                 print("{} - Connection has been terminated by the server.".format(Gui.get_time()))
                 self.default_values_labels()
@@ -413,7 +407,7 @@ class Gui(Node, tk.Frame):
                 self.node_1_status_label['text'] = 'Offline'
             else:
                 self.node_1_status_label['text'] = 'Online'
-                
+
             if "NODE_2" not in node_list:
                 self.node_2_status_label['text'] = 'Offline'
             else:
