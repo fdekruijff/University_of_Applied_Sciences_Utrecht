@@ -404,15 +404,23 @@ class Gui(Node, tk.Frame):
         self.canvas.get_tk_widget().pack(side=RIGHT, fill=BOTH, expand=True)
         self.canvas.show()
 
+    def nodes_online_check(self):
+        node_list = []
+        for client in self.client_list:
+            if "NODE_1" == client.uuid:
+                node_list.append(client.uuid)
+            if "NODE_2" == client.uuid:
+                node_list.append(client.uuid)
+
+            if "NODE_1" not in node_list:
+                self.node_1_status_label['text'] = 'Offline'
+            if "NODE_2" not in node_list:
+                self.node_2_status_label['text'] = 'Offline'
+
     def update_gui(self):
         """Function to update labels and the listbox of the GUI"""
         self.populate_client_list()
-
-        for client in self.client_list:
-            if "NODE_1" == client.uuid:
-                self.node_1_status_label['text'] = 'Offline'
-            if "NODE_2" == client.uuid:
-                self.node_2_status_label['text'] = 'Offline'
+        self.nodes_online_check()
 
         if self.node_1_status_label['text'] == 'Online' and self.node_2_status_label['text'] == 'Online':
             self.status_value_label['text'] = 'In werking'
