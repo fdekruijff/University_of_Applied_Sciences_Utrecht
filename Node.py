@@ -21,7 +21,9 @@ class Node:
         self.water_level = water_level
 
     def __str__(self):
-        """ Returns object parameters in JSON string format for socket data transfer """
+        """
+            Dynamically transforms all this objects parameters and it's values to a JSON formatted style.
+        """
         return_string = "{"
         for x in range(len(self.__dict__.keys())):
             try:

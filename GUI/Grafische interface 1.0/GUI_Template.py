@@ -44,7 +44,7 @@ class Gui(Node, tk.Frame):
         self.root.maxsize(width=800, height=600)
         self.root.title('Status Waterkering')
 
-        self.hoofdframe = Frame(master=self.root,  # Maakt hoofd_frame aan
+        self.hoofdframe = Frame(master=self.root,  # Maakt main_frame aan
                            background='midnight blue',
                            highlightthickness=15,
                            highlightbackground='DodgerBlue4',
@@ -52,7 +52,7 @@ class Gui(Node, tk.Frame):
                            )
         self.hoofdframe.pack(side=LEFT, fill=BOTH, expand=True)
 
-        self.resultaatframe = Frame(master=self.root,  # Maakt resultaat_frame aan
+        self.resultaatframe = Frame(master=self.root,  # Maakt result_frame aan
                                width=250,
                                height=250,
                                background='midnight blue',
@@ -77,7 +77,7 @@ class Gui(Node, tk.Frame):
 
         self.textVeld.pack(side=BOTTOM)
 
-        self.bovenframe = Frame(master=self.root,  # Maakt resultaat_frame aan
+        self.bovenframe = Frame(master=self.root,  # Maakt result_frame aan
                            background='midnight blue',
                            highlightthickness=15,
                            highlightbackground='DodgerBlue4',
@@ -103,10 +103,10 @@ class Gui(Node, tk.Frame):
         self.label11 = Label(master=self.hoofdframe, text="Operationeel", fg='white', bg='midnight blue', font=self.my_font2)
         self.label11.grid(row=4, column=0)
 
-        # button2 = Button(master=hoofd_frame, text='Waterkering sluiten', bd=1, command=button2)
+        # button2 = Button(master=main_frame, text='Waterkering sluiten', bd=1, command=button2)
         # button2.grid(row=5, column=0)
 
-        # button3 = Button(master=hoofd_frame, text='Waterkering openen', bd=1, command=button3, state='disabled')
+        # button3 = Button(master=main_frame, text='Waterkering openen', bd=1, command=button3, state='disabled')
         # button3.grid(row=5, column=1)
 
         self.label1 = Label(master=self.bovenframe, text="Status:", bg='midnight blue', fg='white', font=self.my_font2)

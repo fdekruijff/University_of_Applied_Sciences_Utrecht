@@ -46,7 +46,7 @@ if __name__ == '__main__':
     try:
         while True:
             dist = distance()
-            print ("Gemeten afstand = %.1f cm" % dist)
+            print ("Gemeten door_distance = %.1f cm" % dist)
             time.sleep(1)
 
         # Reset by pressing CTRL + C

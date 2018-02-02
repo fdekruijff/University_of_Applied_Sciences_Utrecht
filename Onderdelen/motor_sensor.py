@@ -192,7 +192,7 @@ def Main_loop_kering():
                 openkering_motor()
                 status = "open"
             else:
-                print ("Gemeten afstand = %.1f cm" % dist)
+                print ("Gemeten door_distance = %.1f cm" % dist)
             time.sleep(1)
 
 
