@@ -12,6 +12,6 @@ This repository will contain all the projects and homework assignments that are 
 | [TICT-V1PROG-15-Portfolio](https://github.com/fdekruijff/University_of_Applied_Sciences_Utrecht/tree/TICT-V1PROG-15-Portfolio)  | Programming course for the Python basics | 
 | [TICT-V1PROG-15-Miniproject](https://github.com/fdekruijff/University_of_Applied_Sciences_Utrecht/tree/TICT-V1PROG-15-Miniproject)  | Final project for the course Programming  |
 | [TICT-V1CSN-15-Miniproject](https://github.com/fdekruijff/University_of_Applied_Sciences_Utrecht/tree/TICT-V1CSN-15-Miniproject) | Final project for the course Computer Systems and Networking   |
-| [TICT-V1IDP-15-Miniproject](https://github.com/RemcoTaal/TICT-V1IDP-15-Miniproject) | Final project for the Interdisciplinary Project collaboration between different specializations |
+| [TICT-V1IDP-15-Project](https://github.com/fdekruijff/University_of_Applied_Sciences_Utrecht/tree/TICT-V1IDP-15-Project) | Final project for the Interdisciplinary Project collaboration between different specializations |
 
 <sup><sup>Maybe this is not the best way to go about organising my work, but it was worth a shot :)</sup></sup>
